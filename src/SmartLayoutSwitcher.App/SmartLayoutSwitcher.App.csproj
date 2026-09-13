@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartLayoutSwitcher.Core\SmartLayoutSwitcher.Core.csproj" />
+    <ProjectReference Include="..\SmartLayoutSwitcher.Native\SmartLayoutSwitcher.Native.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <UseSystemDrawing>true</UseSystemDrawing>
+    <ApplicationIcon>..\..\icon\Lang-icon.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\icon\Lang-icon.ico">
+      <LogicalName>SmartLayoutSwitcher.App.Resources.LangIcon.ico</LogicalName>
+    </EmbeddedResource>
+    <Resource Include="..\..\icon\Lang-icon.ico">
+      <Link>Resources\Lang-icon.ico</Link>
+    </Resource>
+  </ItemGroup>
+
+</Project>

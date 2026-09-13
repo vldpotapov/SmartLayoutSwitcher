@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1C2857A5-0DB1-4B60-A8C5-68B115851B9E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLayoutSwitcher.Core", "src\SmartLayoutSwitcher.Core\SmartLayoutSwitcher.Core.csproj", "{57EEDBC8-B666-4272-8B0C-40030CF718C9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLayoutSwitcher.App", "src\SmartLayoutSwitcher.App\SmartLayoutSwitcher.App.csproj", "{E4EB54EB-C6D3-44C6-AD9A-4E3FB656C7A3}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{89A94D58-45C7-4BB5-87A2-64511F37F110}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLayoutSwitcher.Core.Tests", "tests\SmartLayoutSwitcher.Core.Tests\SmartLayoutSwitcher.Core.Tests.csproj", "{61E88899-329C-46B1-8ACC-67C63EF57D74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartLayoutSwitcher.Native", "src\SmartLayoutSwitcher.Native\SmartLayoutSwitcher.Native.csproj", "{7679BB75-1A2E-4625-8258-AB0B71A8E4F7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{57EEDBC8-B666-4272-8B0C-40030CF718C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{57EEDBC8-B666-4272-8B0C-40030CF718C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{57EEDBC8-B666-4272-8B0C-40030CF718C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{57EEDBC8-B666-4272-8B0C-40030CF718C9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E4EB54EB-C6D3-44C6-AD9A-4E3FB656C7A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E4EB54EB-C6D3-44C6-AD9A-4E3FB656C7A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E4EB54EB-C6D3-44C6-AD9A-4E3FB656C7A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E4EB54EB-C6D3-44C6-AD9A-4E3FB656C7A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{61E88899-329C-46B1-8ACC-67C63EF57D74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{61E88899-329C-46B1-8ACC-67C63EF57D74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{61E88899-329C-46B1-8ACC-67C63EF57D74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{61E88899-329C-46B1-8ACC-67C63EF57D74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7679BB75-1A2E-4625-8258-AB0B71A8E4F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7679BB75-1A2E-4625-8258-AB0B71A8E4F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7679BB75-1A2E-4625-8258-AB0B71A8E4F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7679BB75-1A2E-4625-8258-AB0B71A8E4F7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{57EEDBC8-B666-4272-8B0C-40030CF718C9} = {1C2857A5-0DB1-4B60-A8C5-68B115851B9E}
+		{E4EB54EB-C6D3-44C6-AD9A-4E3FB656C7A3} = {1C2857A5-0DB1-4B60-A8C5-68B115851B9E}
+		{61E88899-329C-46B1-8ACC-67C63EF57D74} = {89A94D58-45C7-4BB5-87A2-64511F37F110}
+		{7679BB75-1A2E-4625-8258-AB0B71A8E4F7} = {1C2857A5-0DB1-4B60-A8C5-68B115851B9E}
+	EndGlobalSection
+EndGlobal

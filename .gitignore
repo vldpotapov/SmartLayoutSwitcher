@@ -1,0 +1,21 @@
+# Build output and IDE state
+[Bb]in/
+[Oo]bj/
+.vs/
+*.user
+*.suo
+
+# Local dependencies and release experiments
+.nuget/
+artifacts/
+
+# Codex attachments and local visual references are not product sources
+.codex-remote-attachments/
+refs/
+
+# Superseded console experiment; the tray app is the supported product.
+/src/SmartLayoutSwitcher.Prototype/
+
+# Logs and local settings
+*.log
+settings.json
