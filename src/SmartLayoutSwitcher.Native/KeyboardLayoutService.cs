@@ -131,7 +131,15 @@ public sealed class KeyboardLayoutService
         if (hwnd == IntPtr.Zero || layout.IsEmpty || !IsValidLayoutId(layout.Id))
             return false;
 
-        var hkl = new IntPtr(long.Parse(layout.Id, System.Globalization.NumberStyles.HexNumber));
+        // WM_INPUTLANGCHANGEREQUEST expects a real, loaded HKL. A registry
+        // KLID is not necessarily that handle: e.g. the Czech QWERTY
+        // substitute 00010405 is loaded by Windows as F0050405. Posting the
+        // plain KLID is accepted by PostMessage but does not activate Czech,
+        // leaving the switcher's history out of sync with Windows.
+        var hkl = FindLoadedHkl(layout);
+        if (hkl == IntPtr.Zero)
+            return false;
+
         return NativeMethods.PostMessage(hwnd, NativeMethods.WM_INPUTLANGCHANGEREQUEST, IntPtr.Zero, hkl);
     }
 
@@ -154,6 +162,50 @@ public sealed class KeyboardLayoutService
         {
             return preloadId;
         }
+    }
+
+    private static IntPtr FindLoadedHkl(LayoutId target)
+    {
+        if (!uint.TryParse(target.Id, System.Globalization.NumberStyles.HexNumber, null, out var targetId))
+            return IntPtr.Zero;
+
+        var count = checked((int)NativeMethods.GetKeyboardLayoutList(0, null));
+        if (count <= 0)
+            return IntPtr.Zero;
+
+        var loaded = new IntPtr[count];
+        NativeMethods.GetKeyboardLayoutList(loaded.Length, loaded);
+
+        // Most layouts have an HKL that exactly contains their KLID.
+        foreach (var hkl in loaded)
+            if ((uint)hkl.ToInt64() == targetId)
+                return hkl;
+
+        var languageId = targetId & 0xFFFF;
+        var highWord = targetId >> 16;
+        var isSubstitute = highWord != 0 && highWord != languageId;
+
+        // Preferred variants are represented by transient FxxxLLLL HKLs.
+        // Prefer that handle for a substituted KLID, rather than the base
+        // LLLL LLLL layout that can coexist in Windows' loaded list.
+        if (isSubstitute)
+        {
+            foreach (var hkl in loaded)
+            {
+                var raw = (uint)hkl.ToInt64();
+                if ((raw & 0xFFFF) == languageId && (raw & 0xF0000000) == 0xF0000000)
+                    return hkl;
+            }
+        }
+
+        // Standard language layouts use the familiar 04090409 form. The
+        // fallback still lets Windows resolve ordinary user-installed layouts
+        // while only substituted variants use the Fxxx preference above.
+        foreach (var hkl in loaded)
+            if (((uint)hkl.ToInt64() & 0xFFFF) == languageId)
+                return hkl;
+
+        return IntPtr.Zero;
     }
 
     private static string ReadLayoutText(uint preloadId)

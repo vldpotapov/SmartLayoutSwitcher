@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.2"
+#define MyAppVersion "1.0.3"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
