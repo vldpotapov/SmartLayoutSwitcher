@@ -267,7 +267,7 @@ public sealed class LayoutSwitcherService : IDisposable
                 return;
             }
 
-            _history.ApplyUserSelection(chosen);
+            _history.ApplyPopupSelection(chosen);
             _memory.Remember(hwnd, chosen);
             BeginInternalSwitch(chosen);
             RaiseStatus();

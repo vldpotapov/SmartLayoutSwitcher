@@ -55,6 +55,36 @@ public class LayoutHistoryTests
     }
 
     [Fact]
+    public void PopupSelection_ReplacesActiveMemberAndPreservesOtherMember()
+    {
+        var h = new LayoutHistory();
+        h.Initialize(RU);
+        h.ApplyUserSelection(EN);              // pair = { RU, EN }, EN active
+
+        Assert.True(h.ApplyPopupSelection(CZ));
+        Assert.Equal(RU, h.Primary);           // preserve the non-active member
+        Assert.Equal(CZ, h.Secondary);
+        Assert.Equal(CZ, h.Current);
+
+        h.ApplyInternalToggle();
+        Assert.Equal(RU, h.Current);
+    }
+
+    [Fact]
+    public void PopupSelection_WhenPrimaryIsActive_PreservesSecondaryMember()
+    {
+        var h = new LayoutHistory();
+        h.Initialize(RU);
+        h.ApplyUserSelection(EN);
+        h.ApplyInternalToggle();               // RU active
+
+        Assert.True(h.ApplyPopupSelection(CZ));
+        Assert.Equal(EN, h.Primary);
+        Assert.Equal(CZ, h.Secondary);
+        Assert.Equal(CZ, h.Current);
+    }
+
+    [Fact]
     public void ApplyingSameLayoutAgain_DoesNotChangeHistory()
     {
         var h = new LayoutHistory();

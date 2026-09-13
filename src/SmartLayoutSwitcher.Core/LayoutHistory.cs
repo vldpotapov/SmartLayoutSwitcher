@@ -77,6 +77,34 @@ public sealed class LayoutHistory
     }
 
     /// <summary>
+    /// Applies a selection made in the layout popup. Unlike a manual Windows
+    /// language switch, popup selection edits the current pair: a new layout
+    /// replaces the active member and preserves the other member. Thus, from
+    /// RU ↔ EN with EN active, choosing Czech produces RU ↔ Czech.
+    /// </summary>
+    public bool ApplyPopupSelection(LayoutId selected)
+    {
+        ArgumentNullException.ThrowIfNull(selected);
+        if (selected.IsEmpty || selected == Current)
+            return false;
+
+        if (!HasPair || (Current != Primary && Current != Secondary))
+            return ApplyUserSelection(selected);
+
+        if (selected == Primary || selected == Secondary)
+        {
+            Current = selected;
+            return false;
+        }
+
+        var preserved = Current == Primary ? Secondary : Primary;
+        Primary = preserved;
+        Secondary = selected;
+        Current = selected;
+        return true;
+    }
+
+    /// <summary>
     /// Returns the layout the hotkey should switch to without mutating state.
     /// </summary>
     public bool TryGetToggleTarget(out LayoutId target)
