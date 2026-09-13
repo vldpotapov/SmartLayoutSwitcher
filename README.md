@@ -4,7 +4,9 @@
   <img src="icon/Lang-icon.png" width="128" alt="Smart Layout Switcher icon">
 </p>
 
-Smart Layout Switcher is a small Windows tray app for switching the input language without breaking normal typing. It works only with the keyboard layouts already installed for the current Windows user.
+**A Mac-like keyboard layout switcher for Windows.** Switch instantly between your two working languages with one shortcut, or hold it to open a beautiful visual picker for every layout installed in Windows.
+
+Smart Layout Switcher stays quietly in the system tray, never adds its own keyboard layouts, and is designed to keep normal typing uninterrupted. It works only with the languages and layout variants already configured for the current Windows user.
 
 ## Download and install
 
