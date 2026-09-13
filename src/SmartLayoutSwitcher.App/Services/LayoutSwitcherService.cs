@@ -37,6 +37,13 @@ public sealed class LayoutSwitcherService : IDisposable
     private System.Threading.Timer? _longPressTimer;
     private bool _longPressRaised;
 
+    // Win is deferred while we learn whether the user will press Space. A Win
+    // key must always reach Windows as a balanced down/up pair, or not reach it
+    // at all; swallowing only its key-up makes the keyboard appear stuck.
+    private int _deferredWinVk;
+    private bool _deferredWinRelayed;
+    private bool _winSpaceRecognized;
+
     private bool _isInternalSwitch;
     private LayoutId _internalTarget = LayoutId.Empty;
     private long _internalDeadline;
@@ -103,6 +110,11 @@ public sealed class LayoutSwitcherService : IDisposable
 
     private KeyReaction OnKey(HookKeyEventArgs args)
     {
+        // Events emitted by SendVirtualKey below must flow to Windows unchanged;
+        // handling them again would recursively defer the synthetic Win key.
+        if (args.IsInjected)
+            return KeyReaction.PassThrough;
+
         // Disabled means fully transparent to normal typing and the user's own
         // Windows language shortcut.
         if (!_settings.Enabled && !_popup.IsOpen)
@@ -120,28 +132,80 @@ public sealed class LayoutSwitcherService : IDisposable
         KeyReaction reaction;
         if (isPrimary)
         {
-            // Win was allowed through before Space completed the combo. Letting
-            // its key-up through after a recognised Win+Space makes Explorer
-            // treat it as a standalone Win press and open Start. This applies
-            // only to a completed/finishing combo; an ordinary Win press remains
-            // untouched.
-            var suppressWinRelease = usesWinSpace && args.IsKeyUp &&
-                (_reactor.IsEngaged || _reactor.IsWaitingForRelease);
-            reaction = args.IsKeyUp
-                ? _reactor.PrimaryUp(now, suppressWinRelease)
-                : _reactor.PrimaryDown(now);
+            reaction = usesWinSpace
+                ? RouteDeferredWin(args, now)
+                : args.IsKeyUp ? _reactor.PrimaryUp(now) : _reactor.PrimaryDown(now);
         }
         else if (isSecondary)
+        {
             reaction = args.IsKeyUp ? _reactor.SecondaryUp(now) : _reactor.SecondaryDown(now);
+            if (usesWinSpace && _reactor.IsEngaged)
+                _winSpaceRecognized = true;
+        }
         else if (_popup.IsOpen)
             reaction = RoutePopupKey(args);
         else
+        {
+            RelayDeferredWinForAnotherShortcut(usesWinSpace, args);
             reaction = args.IsKeyUp ? _reactor.OtherKeyUp() : _reactor.OtherKeyDown();
+        }
 
         if (args.VkCode is NativeMethods.VK_RMENU or NativeMethods.VK_RSHIFT)
             _log.Debug($"Right modifier 0x{args.VkCode:X2} passed through (AltGr safe).");
 
         return reaction;
+    }
+
+    private KeyReaction RouteDeferredWin(HookKeyEventArgs args, long now)
+    {
+        if (!args.IsKeyUp)
+        {
+            if (_deferredWinVk == 0)
+            {
+                _deferredWinVk = args.VkCode;
+                _deferredWinRelayed = false;
+                _winSpaceRecognized = false;
+            }
+
+            _reactor.PrimaryDown(now);
+            return KeyReaction.Suppress;
+        }
+
+        _reactor.PrimaryUp(now);
+
+        if (_deferredWinVk == args.VkCode)
+        {
+            if (_deferredWinRelayed)
+            {
+                NativeMethods.SendVirtualKey(args.VkCode, keyUp: true);
+            }
+            else if (!_winSpaceRecognized)
+            {
+                // A plain Win press was deferred. Replay it as a complete pair
+                // so Start keeps its normal behaviour without leaving any key
+                // state behind in the foreground application.
+                NativeMethods.SendVirtualKey(args.VkCode);
+                NativeMethods.SendVirtualKey(args.VkCode, keyUp: true);
+            }
+
+            _deferredWinVk = 0;
+            _deferredWinRelayed = false;
+            _winSpaceRecognized = false;
+        }
+
+        return KeyReaction.Suppress;
+    }
+
+    private void RelayDeferredWinForAnotherShortcut(bool usesWinSpace, HookKeyEventArgs args)
+    {
+        if (!usesWinSpace || args.IsKeyUp || _deferredWinVk == 0 || _deferredWinRelayed || _winSpaceRecognized)
+            return;
+
+        // Win was held for a different shortcut (for example Win+E), not our
+        // layout switch. Send its down event just before the other key reaches
+        // Windows, then balance it when the physical Win key is released.
+        NativeMethods.SendVirtualKey(_deferredWinVk);
+        _deferredWinRelayed = true;
     }
 
     private KeyReaction RoutePopupKey(HookKeyEventArgs args)

@@ -31,12 +31,6 @@ public sealed class HotkeyReactor
 
     public bool IsEngaged => _engaged;
 
-    /// <summary>
-    /// True after one member of a recognised combo was released, while the
-    /// matching key-up for the other member is still expected.
-    /// </summary>
-    public bool IsWaitingForRelease => _waitingForRelease;
-
     /// <summary>Fired exactly once on the key-down that completes the combo.</summary>
     public event Action<long>? ComboEngaged;
 
@@ -73,14 +67,7 @@ public sealed class HotkeyReactor
     // Generic aliases let the host reuse the same balanced-key state machine for
     // another two-key shortcut, such as Win+Space.
     public KeyReaction PrimaryDown(long nowMs, bool isRepeat = false) => ModifierDown(isLeftAlt: true, nowMs, isRepeat);
-    /// <summary>
-    /// Processes the primary key release. Win+Space callers can request that a
-    /// previously passed Win-down is not paired with a delivered Win-up after a
-    /// recognised combo: that prevents Windows from treating it as a lone Win
-    /// press and opening Start.
-    /// </summary>
-    public KeyReaction PrimaryUp(long nowMs, bool suppressPassedKeyUp = false) =>
-        ModifierUp(isLeftAlt: true, nowMs, suppressPassedKeyUp);
+    public KeyReaction PrimaryUp(long nowMs) => ModifierUp(isLeftAlt: true, nowMs);
     public KeyReaction SecondaryDown(long nowMs, bool isRepeat = false) => ModifierDown(isLeftAlt: false, nowMs, isRepeat);
     public KeyReaction SecondaryUp(long nowMs) => ModifierUp(isLeftAlt: false, nowMs);
 
@@ -131,7 +118,7 @@ public sealed class HotkeyReactor
         return KeyReaction.PassThrough;
     }
 
-    private KeyReaction ModifierUp(bool isLeftAlt, long nowMs, bool suppressPassedKeyUp = false)
+    private KeyReaction ModifierUp(bool isLeftAlt, long nowMs)
     {
         if (_engaged)
         {
@@ -153,9 +140,7 @@ public sealed class HotkeyReactor
             // inert. Only wait while the other modifier is actually still down.
             _waitingForRelease = _leftAltDown || _leftShiftDown;
             ComboReleased?.Invoke(duration);
-            return passedDown && !suppressPassedKeyUp
-                ? KeyReaction.PassThrough
-                : KeyReaction.Suppress;
+            return passedDown ? KeyReaction.PassThrough : KeyReaction.Suppress;
         }
 
         var passedDownWhileWaiting = isLeftAlt ? _leftAltPassed : _leftShiftPassed;
@@ -166,9 +151,7 @@ public sealed class HotkeyReactor
         {
             if (!_leftAltDown && !_leftShiftDown)
                 _waitingForRelease = false;
-            return passedDownWhileWaiting && !suppressPassedKeyUp
-                ? KeyReaction.PassThrough
-                : KeyReaction.Suppress;
+            return passedDownWhileWaiting ? KeyReaction.PassThrough : KeyReaction.Suppress;
         }
 
         return KeyReaction.PassThrough;
