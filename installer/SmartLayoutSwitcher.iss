@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
@@ -33,7 +33,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
-Name: "autostart"; Description: "Start Smart Layout Switcher with Windows"; Flags: unchecked
+Name: "autostart"; Description: "Start Smart Layout Switcher with Windows"
 Name: "desktopicon"; Description: "Create a desktop icon"; Flags: unchecked
 
 [Files]

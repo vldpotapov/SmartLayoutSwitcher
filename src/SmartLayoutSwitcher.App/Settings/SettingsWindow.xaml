@@ -41,10 +41,9 @@
 
         <StackPanel Grid.Row="4">
             <TextBlock FontWeight="SemiBold" Text="GitHub project" />
-            <DockPanel Margin="0,6,0,0">
-                <Button x:Name="OpenGitHubButton" DockPanel.Dock="Right" Margin="8,0,0,0" Padding="12,3" Content="Open" Click="OpenGitHub_Click" />
-                <TextBox x:Name="GitHubUrlTextBox" VerticalContentAlignment="Center" />
-            </DockPanel>
+            <TextBlock Margin="0,6,0,0">
+                <Hyperlink x:Name="GitHubLink" RequestNavigate="GitHubLink_RequestNavigate" />
+            </TextBlock>
         </StackPanel>
 
         <Border Grid.Row="6" BorderBrush="#DDDDDD" BorderThickness="0,1,0,0" Padding="0,12,0,0">

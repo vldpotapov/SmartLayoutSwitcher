@@ -207,8 +207,8 @@ public partial class LayoutPopupWindow : Window
                     Marshal.Copy(IntPtr.Add(bits.Scan0, row * bits.Stride), pixels, row * stride, stride);
                 }
 
-                Blur(pixels, width, height, radius: 16);
-                Tint(pixels, opacity: 0.35);
+                Blur(pixels, width, height, radius: 20);
+                Tint(pixels, tint: 0xE5, opacity: 0.70);
 
                 var image = BitmapSource.Create(
                     width,
@@ -309,9 +309,8 @@ public partial class LayoutPopupWindow : Window
         }
     }
 
-    private static void Tint(byte[] pixels, double opacity)
+    private static void Tint(byte[] pixels, byte tint, double opacity)
     {
-        const byte tint = 0xCC;
         for (var index = 0; index < pixels.Length; index += 4)
         {
             pixels[index] = Blend(pixels[index], tint, opacity);

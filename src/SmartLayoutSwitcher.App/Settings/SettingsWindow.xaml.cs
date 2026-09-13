@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Navigation;
 
 namespace SmartLayoutSwitcher.App.Settings;
 
@@ -19,7 +21,8 @@ public partial class SettingsWindow : Window
         RememberWindowCheckBox.IsChecked = settings.RememberPerWindow;
         PopupCheckBox.IsChecked = settings.ShowPopupOnLongPress;
         StartWithWindowsCheckBox.IsChecked = settings.StartWithWindows;
-        GitHubUrlTextBox.Text = settings.GitHubProjectUrl;
+        GitHubLink.NavigateUri = new Uri(AppSettings.DefaultGitHubProjectUrl);
+        GitHubLink.Inlines.Add(new Run(AppSettings.DefaultGitHubProjectUrl));
 
         for (var i = 0; i < HotkeyComboBox.Items.Count; i++)
         {
@@ -37,7 +40,6 @@ public partial class SettingsWindow : Window
         _settings.RememberPerWindow = RememberWindowCheckBox.IsChecked == true;
         _settings.ShowPopupOnLongPress = PopupCheckBox.IsChecked == true;
         _settings.StartWithWindows = StartWithWindowsCheckBox.IsChecked == true;
-        _settings.GitHubProjectUrl = GitHubUrlTextBox.Text.Trim();
         if (HotkeyComboBox.SelectedItem is ComboBoxItem { Tag: HotkeyMode mode })
             _settings.Hotkey = mode;
 
@@ -46,15 +48,9 @@ public partial class SettingsWindow : Window
         Close();
     }
 
-    private void OpenGitHub_Click(object sender, RoutedEventArgs e)
+    private void GitHubLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
     {
-        if (!Uri.TryCreate(GitHubUrlTextBox.Text.Trim(), UriKind.Absolute, out var uri) ||
-            (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
-        {
-            MessageBox.Show(this, "Enter a valid GitHub project URL first.", "GitHub project", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        Process.Start(new ProcessStartInfo(uri.AbsoluteUri) { UseShellExecute = true });
+        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        e.Handled = true;
     }
 }

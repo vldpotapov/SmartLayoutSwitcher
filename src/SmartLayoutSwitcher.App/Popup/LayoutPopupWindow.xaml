@@ -12,13 +12,13 @@
         UseLayoutRounding="False"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="ClearType">
-    <!-- Figma "Language popup": 180 wide, radius 20, fill+stroke #CCCCCC @50%,
-         BACKGROUND_BLUR 50, vertical layout padding 10, chips radius 10 h40. -->
+    <!-- Figma "Language popup": 180 wide, radius 20, fill #E5E5E5 @70%,
+         stroke #999999 @50%, BACKGROUND_BLUR 20, padding 10, chip radius 10 h40. -->
     <Border x:Name="RootContainer"
             MinWidth="180"
-            Background="#80CCCCCC"
+            Background="#B2E5E5E5"
             CornerRadius="20"
-            BorderBrush="#80CCCCCC"
+            BorderBrush="#80999999"
              BorderThickness="0.5"
             Padding="10"
             SnapsToDevicePixels="True">
