@@ -8,9 +8,7 @@
 
 Smart Layout Switcher stays quietly in the system tray, never adds its own keyboard layouts, and is designed to keep normal typing uninterrupted. It works only with the languages and layout variants already configured for the current Windows user.
 
-<p align="center">
-  <img src="langpopup.png" width="360" alt="Smart Layout Switcher language picker">
-</p>
+<img src="langpopup.png" width="100%" alt="Smart Layout Switcher language picker">
 
 ## Download and install
 
