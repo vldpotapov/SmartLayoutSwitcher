@@ -147,6 +147,33 @@ public class HotkeyReactorTests
         Assert.Empty(events);
     }
 
+    [Fact]
+    public void WinSpace_CanSuppressThePassedWinRelease_AfterCombo()
+    {
+        var (r, _) = Create();
+
+        // Win-down reaches Windows so an ordinary press can still open Start;
+        // Space completes the recognised shortcut. Its later Win-up must be
+        // swallowed, otherwise Explorer treats the sequence as a lone Win press.
+        Assert.Equal(KeyReaction.PassThrough, r.PrimaryDown(0));
+        Assert.Equal(KeyReaction.Suppress, r.SecondaryDown(10));
+        Assert.Equal(KeyReaction.Suppress, r.PrimaryUp(30, suppressPassedKeyUp: true));
+    }
+
+    [Fact]
+    public void WinSpace_CanSuppressWinRelease_WhenSpaceIsReleasedFirst()
+    {
+        var (r, _) = Create();
+
+        r.PrimaryDown(0);
+        r.SecondaryDown(10);
+        Assert.Equal(KeyReaction.Suppress, r.SecondaryUp(20));
+        Assert.True(r.IsWaitingForRelease);
+
+        Assert.Equal(KeyReaction.Suppress, r.PrimaryUp(30, suppressPassedKeyUp: true));
+        Assert.False(r.IsWaitingForRelease);
+    }
+
     // ------------------------------------------------ cycle mode (long-press popup)
 
     [Fact]

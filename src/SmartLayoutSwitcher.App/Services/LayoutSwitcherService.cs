@@ -119,7 +119,18 @@ public sealed class LayoutSwitcherService : IDisposable
 
         KeyReaction reaction;
         if (isPrimary)
-            reaction = args.IsKeyUp ? _reactor.PrimaryUp(now) : _reactor.PrimaryDown(now);
+        {
+            // Win was allowed through before Space completed the combo. Letting
+            // its key-up through after a recognised Win+Space makes Explorer
+            // treat it as a standalone Win press and open Start. This applies
+            // only to a completed/finishing combo; an ordinary Win press remains
+            // untouched.
+            var suppressWinRelease = usesWinSpace && args.IsKeyUp &&
+                (_reactor.IsEngaged || _reactor.IsWaitingForRelease);
+            reaction = args.IsKeyUp
+                ? _reactor.PrimaryUp(now, suppressWinRelease)
+                : _reactor.PrimaryDown(now);
+        }
         else if (isSecondary)
             reaction = args.IsKeyUp ? _reactor.SecondaryUp(now) : _reactor.SecondaryDown(now);
         else if (_popup.IsOpen)
