@@ -8,7 +8,7 @@ Smart Layout Switcher is a small Windows tray app for switching the input langua
 
 ## Download and install
 
-Download the latest `SmartLayoutSwitcher-Setup.exe` from the [GitHub Releases page](https://github.com/vldpotapov/SmartLayoutSwitcher/releases/latest), run it, and follow the installer.
+Download the latest `SmartLayoutSwitcher-Setup-<version>.exe` from the [GitHub Releases page](https://github.com/vldpotapov/SmartLayoutSwitcher/releases/latest), run it, and follow the installer.
 
 The installer is self-contained: the .NET runtime is included. Windows 10 or Windows 11, 64-bit, is required.
 

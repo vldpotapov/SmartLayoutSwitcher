@@ -11,15 +11,13 @@ namespace SmartLayoutSwitcher.App.Tray;
 public sealed class TrayIcon : IDisposable
 {
     private readonly TaskbarIcon _icon = new();
-    private readonly MenuItem _enabled;
     private readonly MenuItem _current;
     private readonly MenuItem _pair;
 
     public event Action? ExitRequested;
     public event Action? SettingsRequested;
-    public event Action<bool>? EnabledChanged;
 
-    public TrayIcon(bool enabled)
+    public TrayIcon()
     {
         _icon.Icon = TrayIconFactory.Create();
         _icon.ToolTipText = "Smart Layout Switcher";
@@ -27,7 +25,6 @@ public sealed class TrayIcon : IDisposable
         var menu = new ContextMenu();
 
         var header = new MenuItem { Header = "Smart Layout Switcher", IsEnabled = false };
-        _enabled = CreateToggle("Enabled", enabled, v => EnabledChanged?.Invoke(v));
         _current = CreateHeaderItem("Current: —");
         _pair = CreateHeaderItem("Pair: —");
 
@@ -39,7 +36,6 @@ public sealed class TrayIcon : IDisposable
 
         menu.Items.Add(header);
         menu.Items.Add(new Separator());
-        menu.Items.Add(_enabled);
         menu.Items.Add(_current);
         menu.Items.Add(_pair);
         menu.Items.Add(new Separator());
@@ -63,15 +59,6 @@ public sealed class TrayIcon : IDisposable
             invoke();
         else
             dispatcher.BeginInvoke(invoke);
-    }
-
-    public void SetEnabled(bool value) => _enabled.IsChecked = value;
-
-    private static MenuItem CreateToggle(string header, bool initial, Action<bool> onChanged)
-    {
-        var item = new MenuItem { Header = header, IsCheckable = true, IsChecked = initial };
-        item.Click += (_, _) => onChanged(item.IsChecked);
-        return item;
     }
 
     private static MenuItem CreateHeaderItem(string header) =>

@@ -49,14 +49,7 @@ public partial class App : Application
             _tray?.UpdateStatus(s.CurrentCode, s.PairText);
         };
 
-        _tray = new TrayIcon(enabled: _settings.Enabled);
-        _tray.EnabledChanged += value =>
-        {
-            _settings.Enabled = value;
-            _settings.Save();
-            if (_service is not null)
-                _service.Enabled = value;
-        };
+        _tray = new TrayIcon();
         _tray.SettingsRequested += ShowSettings;
         _tray.ExitRequested += RequestExit;
 
@@ -83,7 +76,6 @@ public partial class App : Application
             if (_service is not null)
                 _service.Enabled = _settings.Enabled;
             Autostart.Set(_settings.StartWithWindows);
-            _tray?.SetEnabled(_settings.Enabled);
             _service?.PublishStatus();
         };
         _settingsWindow.Closed += (_, _) => _settingsWindow = null;

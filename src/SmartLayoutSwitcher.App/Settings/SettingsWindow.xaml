@@ -28,6 +28,13 @@
             <CheckBox x:Name="PopupCheckBox" Margin="0,8,0,0" Content="Show popup on long press" />
             <CheckBox x:Name="StartWithWindowsCheckBox" Margin="0,8,0,0" Content="Start with Windows" />
         </StackPanel>
+        <Image Grid.Row="0"
+               Width="40"
+               Height="40"
+               HorizontalAlignment="Right"
+               VerticalAlignment="Top"
+               Source="/SmartLayoutSwitcher.App;component/Resources/Lang-icon.ico"
+               RenderOptions.BitmapScalingMode="HighQuality" />
 
         <StackPanel Grid.Row="2">
             <TextBlock FontWeight="SemiBold" Text="Shortcut" />
@@ -47,11 +54,14 @@
         </StackPanel>
 
         <Border Grid.Row="6" BorderBrush="#DDDDDD" BorderThickness="0,1,0,0" Padding="0,12,0,0">
-            <TextBlock Foreground="#666666" Text="© 2026 Smart Layout Switcher" />
+            <StackPanel>
+                <TextBlock Foreground="#666666" Text="© 2026 Smart Layout Switcher" />
+                <TextBlock x:Name="VersionText" Margin="0,3,0,0" Foreground="#666666" />
+            </StackPanel>
         </Border>
 
         <StackPanel Grid.Row="8" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Margin="0,0,8,0" Padding="14,4" Content="Cancel" IsCancel="True" />
+            <Button Margin="0,0,8,0" Padding="14,4" Content="Cancel" IsCancel="True" Click="Cancel_Click" />
             <Button Padding="14,4" Content="Save" IsDefault="True" Click="Save_Click" />
         </StackPanel>
     </Grid>

@@ -23,6 +23,7 @@ public partial class SettingsWindow : Window
         StartWithWindowsCheckBox.IsChecked = settings.StartWithWindows;
         GitHubLink.NavigateUri = new Uri(AppSettings.DefaultGitHubProjectUrl);
         GitHubLink.Inlines.Add(new Run(AppSettings.DefaultGitHubProjectUrl));
+        VersionText.Text = $"Version {typeof(SettingsWindow).Assembly.GetName().Version?.ToString(3) ?? "—"}";
 
         for (var i = 0; i < HotkeyComboBox.Items.Count; i++)
         {
@@ -53,4 +54,6 @@ public partial class SettingsWindow : Window
         Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
         e.Handled = true;
     }
+
+    private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
 }
