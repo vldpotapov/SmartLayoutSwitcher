@@ -71,6 +71,9 @@ public sealed class LayoutSwitcherService : IDisposable
         _reactor.CycleStep += OnCycleStep;
 
         RefreshCatalog();
+        var staleLayoutsRemoved = _layouts.UnloadRedundantBaseLayouts();
+        if (staleLayoutsRemoved > 0)
+            _log.Info($"Removed {staleLayoutsRemoved} redundant base keyboard layout(s).");
         var current = _layouts.GetForegroundLayoutInfo();
         if (current is not null)
         {

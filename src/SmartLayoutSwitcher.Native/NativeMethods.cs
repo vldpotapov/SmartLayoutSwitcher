@@ -69,6 +69,10 @@ public static class NativeMethods
     public static extern bool UnhookWindowsHookEx(IntPtr hhk);
 
     [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool UnloadKeyboardLayout(IntPtr hkl);
+
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
 
     [DllImport("user32.dll", SetLastError = true)]

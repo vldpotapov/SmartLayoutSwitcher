@@ -91,6 +91,45 @@ public sealed class KeyboardLayoutService
         return result;
     }
 
+    /// <summary>
+    /// Removes a base layout that Windows kept loaded alongside the user's
+    /// preferred substitute. For example, a stale 04050405 Czech HKL can remain
+    /// after an older app loaded it even though the user configured only Czech
+    /// QWERTY (00010405). Keeping both makes Windows show two "CES" entries.
+    /// </summary>
+    public int UnloadRedundantBaseLayouts()
+    {
+        var substitutes = GetConfiguredSubstitutes();
+        if (substitutes.Count == 0)
+            return 0;
+
+        var preloaded = GetPreloadedIds();
+        var loaded = GetLoadedHkls();
+        var removed = 0;
+        foreach (var baseId in substitutes.Keys.Where(preloaded.Contains))
+        {
+            var languageId = baseId & 0xFFFF;
+            var hasPreferredVariant = loaded.Any(hkl =>
+            {
+                var raw = (uint)hkl.ToInt64();
+                return (raw & 0xFFFF) == languageId && (raw & 0xF0000000) == 0xF0000000;
+            });
+
+            if (!hasPreferredVariant)
+                continue;
+
+            foreach (var hkl in loaded)
+            {
+                var raw = (uint)hkl.ToInt64();
+                var isBaseLayout = (raw & 0xFFFF) == languageId && (raw >> 16) == languageId;
+                if (isBaseLayout && NativeMethods.UnloadKeyboardLayout(hkl))
+                    removed++;
+            }
+        }
+
+        return removed;
+    }
+
     public LayoutInfo BuildLayoutInfo(uint preloadId, bool loaded)
     {
         var lcid = (ushort)(preloadId & 0xFFFF);
@@ -164,17 +203,76 @@ public sealed class KeyboardLayoutService
         }
     }
 
+    private static Dictionary<uint, uint> GetConfiguredSubstitutes()
+    {
+        var result = new Dictionary<uint, uint>();
+        try
+        {
+            using var substitutes = Registry.CurrentUser.OpenSubKey(SubstitutesKey);
+            if (substitutes is null)
+                return result;
+
+            foreach (var name in substitutes.GetValueNames())
+            {
+                if (substitutes.GetValue(name) is not string value ||
+                    !uint.TryParse(name, System.Globalization.NumberStyles.HexNumber, null, out var baseId) ||
+                    !uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var effectiveId))
+                    continue;
+
+                result[baseId] = effectiveId;
+            }
+        }
+        catch
+        {
+            // A missing or unreadable registry key simply means no cleanup.
+        }
+
+        return result;
+    }
+
+    private static HashSet<uint> GetPreloadedIds()
+    {
+        var result = new HashSet<uint>();
+        try
+        {
+            using var preload = Registry.CurrentUser.OpenSubKey(PreloadKey);
+            if (preload is null)
+                return result;
+
+            foreach (var name in preload.GetValueNames())
+            {
+                if (preload.GetValue(name) is string value &&
+                    uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var preloadId))
+                    result.Add(preloadId);
+            }
+        }
+        catch
+        {
+            // A missing or unreadable registry key simply means no cleanup.
+        }
+
+        return result;
+    }
+
+    private static IReadOnlyList<IntPtr> GetLoadedHkls()
+    {
+        var count = checked((int)NativeMethods.GetKeyboardLayoutList(0, null));
+        if (count <= 0)
+            return Array.Empty<IntPtr>();
+
+        var loaded = new IntPtr[count];
+        var actual = checked((int)NativeMethods.GetKeyboardLayoutList(loaded.Length, loaded));
+        return actual == loaded.Length ? loaded : loaded.Take(Math.Max(0, actual)).ToArray();
+    }
+
     private static IntPtr FindLoadedHkl(LayoutId target)
     {
         if (!uint.TryParse(target.Id, System.Globalization.NumberStyles.HexNumber, null, out var targetId))
             return IntPtr.Zero;
 
-        var count = checked((int)NativeMethods.GetKeyboardLayoutList(0, null));
-        if (count <= 0)
+        var loaded = GetLoadedHkls();
+        if (loaded.Count == 0)
             return IntPtr.Zero;
-
-        var loaded = new IntPtr[count];
-        NativeMethods.GetKeyboardLayoutList(loaded.Length, loaded);
 
         // Most layouts have an HKL that exactly contains their KLID.
         foreach (var hkl in loaded)
