@@ -22,7 +22,7 @@ The installer is self-contained: the .NET runtime is included. Windows 10 or Win
 - Hold the shortcut to show the language popup.
 - While it is open, release the second key and press it again to move through layouts. Release the first key to apply the selected layout and close the popup.
 - The popup uses a snapshot of the desktop behind it for a soft background-blur effect. The snapshot is taken only when the popup opens, so it does not consume CPU while the app is idle.
-- The app never installs or loads layouts: it uses the layouts configured in Windows, including the user’s selected layout variant such as Czech QWERTY.
+- The app never installs or loads layouts: it uses only the layouts and variants configured in Windows for the current user.
 
 ## Settings
 
