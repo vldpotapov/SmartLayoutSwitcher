@@ -18,26 +18,31 @@ public sealed class PopupController
     /// <summary>Fired with the chosen layout; the service performs the actual switch.</summary>
     public event Action<LayoutId>? LayoutChosen;
 
-    public void Show(IReadOnlyList<LayoutInfo> layouts, LayoutId current)
+    public void Show(IReadOnlyList<LayoutInfo> layouts, LayoutId current, LayoutId paired)
     {
         var dispatcher = Application.Current?.Dispatcher;
         if (dispatcher is null)
             return;
 
         if (dispatcher.CheckAccess())
-            ShowCore(layouts, current);
+            ShowCore(layouts, current, paired);
         else
-            dispatcher.BeginInvoke(() => ShowCore(layouts, current));
+            dispatcher.BeginInvoke(() => ShowCore(layouts, current, paired));
     }
 
-    private void ShowCore(IReadOnlyList<LayoutInfo> layouts, LayoutId current)
+    private void ShowCore(IReadOnlyList<LayoutInfo> layouts, LayoutId current, LayoutId paired)
     {
         if (layouts.Count == 0)
             return;
 
         HideCore();
 
-        var window = new LayoutPopupWindow(layouts, current);
+        var orderedLayouts = layouts
+            .OrderBy(layout => layout.Id == current ? 0 : layout.Id == paired ? 1 : 2)
+            .ThenBy(layout => layout.SortOrder)
+            .ToArray();
+
+        var window = new LayoutPopupWindow(orderedLayouts, current);
         window.LayoutChosen += id => LayoutChosen?.Invoke(id);
         window.Closed += (_, _) =>
         {

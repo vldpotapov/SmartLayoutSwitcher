@@ -185,8 +185,13 @@ public sealed class LayoutSwitcherService : IDisposable
                 _log.Info("Long press detected -> showing layout popup (hold LAlt, tap LShift to cycle, release LAlt to apply).");
                 RefreshCatalog();
                 var current = _history.Current;
+                var paired = current == _history.Primary
+                    ? _history.Secondary
+                    : current == _history.Secondary
+                        ? _history.Primary
+                        : LayoutId.Empty;
                 _reactor.EnterCycleMode();
-                _popup.Show(_installed, current);
+                _popup.Show(_installed, current, paired);
             }
         });
     }
