@@ -18,9 +18,10 @@ The installer is self-contained: the .NET runtime is included. Windows 10 or Win
 
 ## How it works
 
-- A short press of the selected shortcut switches to the next installed layout.
+- A short press of the selected shortcut switches between your two working layouts.
 - Hold the shortcut to show the language popup.
 - While it is open, release the second key and press it again to move through layouts. Release the first key to apply the selected layout and close the popup.
+- The active layout appears first in the popup, its paired layout second, followed by any other layouts installed in Windows.
 - The popup uses a snapshot of the desktop behind it for a soft background-blur effect. The snapshot is taken only when the popup opens, so it does not consume CPU while the app is idle.
 - The app never installs or loads layouts: it uses only the layouts and variants configured in Windows for the current user.
 
@@ -34,7 +35,7 @@ Open **Settings…** from the tray icon to configure:
 - launch at Windows sign-in;
 - the project link.
 
-The tray menu also lets you enable or disable the switcher without exiting it.
+The tray menu provides the current layout, the active pair, Settings, and Exit.
 
 ## Build from source
 
