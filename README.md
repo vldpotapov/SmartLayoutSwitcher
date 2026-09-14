@@ -33,6 +33,7 @@ Open **Settings…** from the tray icon to configure:
 - popup display on a long press;
 - per-window layout memory;
 - launch at Windows sign-in;
+- checking for a new release and downloading its installer to your Downloads folder;
 - the project link.
 
 The tray menu provides the current layout, the active pair, Settings, and Exit.

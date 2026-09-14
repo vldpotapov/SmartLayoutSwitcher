@@ -51,6 +51,12 @@
             <TextBlock Margin="0,6,0,0">
                 <Hyperlink x:Name="GitHubLink" RequestNavigate="GitHubLink_RequestNavigate" />
             </TextBlock>
+            <StackPanel Margin="0,12,0,0" Orientation="Horizontal">
+                <Button x:Name="CheckForUpdatesButton" Padding="14,4" Content="Check for updates"
+                        Click="CheckForUpdates_Click" />
+                <TextBlock x:Name="UpdateStatusText" Margin="10,0,0,0" VerticalAlignment="Center"
+                           Foreground="#666666" TextWrapping="Wrap" />
+            </StackPanel>
         </StackPanel>
 
         <Border Grid.Row="6" BorderBrush="#DDDDDD" BorderThickness="0,1,0,0" Padding="0,12,0,0">

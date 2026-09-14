@@ -3,12 +3,15 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
+using SmartLayoutSwitcher.App.Services;
 
 namespace SmartLayoutSwitcher.App.Settings;
 
 public partial class SettingsWindow : Window
 {
     private readonly AppSettings _settings;
+    private readonly UpdateService _updateService = new();
+    private UpdateInfo? _availableUpdate;
 
     public event Action? SettingsSaved;
 
@@ -61,6 +64,63 @@ public partial class SettingsWindow : Window
         Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
         e.Handled = true;
     }
+
+    private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
+    {
+        if (_availableUpdate is not null)
+        {
+            await DownloadAvailableUpdateAsync(_availableUpdate);
+            return;
+        }
+
+        CheckForUpdatesButton.IsEnabled = false;
+        UpdateStatusText.Text = "Checking…";
+
+        var installedVersion = NormalizeVersion(typeof(SettingsWindow).Assembly.GetName().Version);
+        var result = await _updateService.CheckAsync(installedVersion);
+
+        switch (result.Status)
+        {
+            case UpdateCheckStatus.UpToDate:
+                UpdateStatusText.Text = "You’re up to date.";
+                break;
+            case UpdateCheckStatus.UpdateAvailable when result.Update is not null:
+                _availableUpdate = result.Update;
+                CheckForUpdatesButton.Content = $"Download {result.Update.Version}";
+                UpdateStatusText.Text = "A new version is available.";
+                break;
+            default:
+                UpdateStatusText.Text = "Couldn’t check for updates.";
+                break;
+        }
+
+        CheckForUpdatesButton.IsEnabled = true;
+    }
+
+    private async Task DownloadAvailableUpdateAsync(UpdateInfo update)
+    {
+        CheckForUpdatesButton.IsEnabled = false;
+        UpdateStatusText.Text = "Downloading installer…";
+
+        try
+        {
+            var installerPath = await _updateService.DownloadInstallerAsync(update);
+            UpdateStatusText.Text = "Installer downloaded to Downloads.";
+            CheckForUpdatesButton.Content = "Download complete";
+            Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{installerPath}\"") { UseShellExecute = true });
+        }
+        catch (Exception)
+        {
+            UpdateStatusText.Text = "Download failed. Try again.";
+            CheckForUpdatesButton.Content = $"Download {update.Version}";
+            CheckForUpdatesButton.IsEnabled = true;
+        }
+    }
+
+    private static Version NormalizeVersion(Version? version) =>
+        version is null
+            ? new Version(0, 0, 0)
+            : new Version(version.Major, version.Minor, Math.Max(0, version.Build));
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
 }
