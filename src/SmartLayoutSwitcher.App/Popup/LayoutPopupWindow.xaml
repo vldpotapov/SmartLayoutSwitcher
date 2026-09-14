@@ -12,14 +12,14 @@
         UseLayoutRounding="False"
         TextOptions.TextFormattingMode="Ideal"
         TextOptions.TextRenderingMode="ClearType">
-    <!-- Figma "Language popup": 180 wide, radius 20, fill #E5E5E5 @70%,
-         stroke #999999 @50%, BACKGROUND_BLUR 20, padding 10, chip radius 10 h40. -->
+    <!-- Figma "Language popup": 180 wide, radius 20, fill #F2F2F2 @60%,
+         stroke #808080 @60%, BACKGROUND_BLUR 15, padding 10, chip radius 10 h40. -->
     <Border x:Name="RootContainer"
             MinWidth="180"
-            Background="#B2E5E5E5"
+            Background="#99F2F2F2"
             CornerRadius="20"
-            BorderBrush="#80999999"
-             BorderThickness="0.5"
+            BorderBrush="#99808080"
+            BorderThickness="0.5"
             Padding="10"
             SnapsToDevicePixels="True">
         <StackPanel x:Name="ChipsPanel" Orientation="Vertical"/>

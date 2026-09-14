@@ -24,11 +24,11 @@ namespace SmartLayoutSwitcher.App.Popup;
 public partial class LayoutPopupWindow : Window
 {
     // Figma: active chip fill #000000 @20%, inactive fully transparent.
-    private static readonly SolidColorBrush ActiveChipBrush = Frozen(Color.FromArgb(0x20, 0x00, 0x00, 0x00));
+    private static readonly SolidColorBrush ActiveChipBrush = Frozen(Color.FromArgb(0x33, 0x00, 0x00, 0x00));
     private static readonly SolidColorBrush InactiveChipBrush = Frozen(Color.FromArgb(0x00, 0x00, 0x00, 0x00));
 
-    // Figma: label fill #000000 @75%, Segoe UI Semibold 17.
-    private static readonly SolidColorBrush LabelBrush = Frozen(Color.FromArgb(0xBF, 0x00, 0x00, 0x00));
+    // Figma: label fill #000000 @90%, Segoe UI Semibold 17.
+    private static readonly SolidColorBrush LabelBrush = Frozen(Color.FromArgb(0xE5, 0x00, 0x00, 0x00));
 
     private readonly List<LayoutInfo> _layouts;
     private readonly List<Border> _chips = new();
@@ -207,8 +207,8 @@ public partial class LayoutPopupWindow : Window
                     Marshal.Copy(IntPtr.Add(bits.Scan0, row * bits.Stride), pixels, row * stride, stride);
                 }
 
-                Blur(pixels, width, height, radius: 20);
-                Tint(pixels, tint: 0xE5, opacity: 0.70);
+                Blur(pixels, width, height, radius: 15);
+                Tint(pixels, tint: 0xF2, opacity: 0.60);
 
                 var image = BitmapSource.Create(
                     width,
