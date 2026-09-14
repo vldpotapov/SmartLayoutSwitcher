@@ -29,11 +29,14 @@ public static class NativeMethods
     public const int VK_RSHIFT = 0xA1;
     public const int VK_LMENU = 0xA4;
     public const int VK_RMENU = 0xA5;
+    public const int VK_MENU = 0x12;
+    public const int VK_CONTROL = 0x11;
+    public const int VK_LCONTROL = 0xA2;
+    public const int VK_RCONTROL = 0xA3;
     public const int VK_LWIN = 0x5B;
     public const int VK_RWIN = 0x5C;
     public const int VK_SPACE = 0x20;
 
-    private const uint INPUT_KEYBOARD = 1;
     private const uint KEYEVENTF_KEYUP = 0x0002;
 
     // Extended window styles
@@ -59,53 +62,28 @@ public static class NativeMethods
         public IntPtr dwExtraInfo;
     }
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct INPUT
-    {
-        public uint type;
-        public InputUnion U;
-    }
-
-    [StructLayout(LayoutKind.Explicit)]
-    private struct InputUnion
-    {
-        [FieldOffset(0)]
-        public KEYBDINPUT ki;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct KEYBDINPUT
-    {
-        public ushort wVk;
-        public ushort wScan;
-        public uint dwFlags;
-        public uint time;
-        public IntPtr dwExtraInfo;
-    }
-
     public delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
 
-    [DllImport("user32.dll", SetLastError = true)]
-    private static extern uint SendInput(uint cInputs, INPUT[] pInputs, int cbSize);
+    [DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int vKey);
 
-    /// <summary>Relays a keyboard event that was intentionally deferred by the hook.</summary>
-    public static bool SendVirtualKey(int virtualKey, bool keyUp = false)
+    [DllImport("user32.dll")]
+    private static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+    /// <summary>
+    /// Briefly presses Control while Alt or Win is still physically held. That
+    /// marks the modifier as used, so Windows does not activate a menu on its
+    /// later key-up. Control itself is intentionally avoided when already held.
+    /// </summary>
+    public static void SendMenuMaskKeyStroke()
     {
-        var input = new INPUT
-        {
-            type = INPUT_KEYBOARD,
-            U = new InputUnion
-            {
-                ki = new KEYBDINPUT
-                {
-                    wVk = checked((ushort)virtualKey),
-                    dwFlags = keyUp ? KEYEVENTF_KEYUP : 0,
-                },
-            },
-        };
-
-        return SendInput(1, [input], Marshal.SizeOf<INPUT>()) == 1;
+        keybd_event(VK_CONTROL, 0, 0, UIntPtr.Zero);
+        keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
     }
+
+    public static bool IsControlDown() =>
+        (GetAsyncKeyState(VK_LCONTROL) & 0x8000) != 0 ||
+        (GetAsyncKeyState(VK_RCONTROL) & 0x8000) != 0;
 
     public delegate void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject,
         int idChild, uint dwEventThread, uint dwmsEventTime);

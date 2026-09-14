@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using Microsoft.Win32;
 using SmartLayoutSwitcher.App.Diagnostics;
 using SmartLayoutSwitcher.App.Services;
 using SmartLayoutSwitcher.App.Settings;
@@ -31,6 +32,7 @@ public partial class App : Application
         _ownsMutex = true;
 
         _settings = AppSettings.Load();
+        ApplyInstallerHotkey(_settings);
         if (string.IsNullOrWhiteSpace(_settings.GitHubProjectUrl))
         {
             _settings.GitHubProjectUrl = AppSettings.DefaultGitHubProjectUrl;
@@ -57,6 +59,30 @@ public partial class App : Application
         _service.PublishStatus();
 
         _log.Info("Ready. Short press LAlt+LShift toggles the pair; long press opens the layout popup.");
+    }
+
+    private static void ApplyInstallerHotkey(AppSettings settings)
+    {
+        const string registryPath = @"Software\SmartLayoutSwitcher";
+
+        try
+        {
+            using var key = Registry.CurrentUser.OpenSubKey(registryPath, writable: true);
+            var selectedHotkey = key?.GetValue("InstallerHotkey") as string;
+
+            if (selectedHotkey is not ("WinSpace" or "LeftAltLeftShift"))
+                return;
+
+            settings.Hotkey = selectedHotkey == "WinSpace"
+                ? HotkeyMode.WinSpace
+                : HotkeyMode.LeftAltLeftShift;
+            settings.Save();
+            key!.DeleteValue("InstallerHotkey", throwOnMissingValue: false);
+        }
+        catch
+        {
+            // An installer preference is optional; startup must never depend on it.
+        }
     }
 
     private void ShowSettings()

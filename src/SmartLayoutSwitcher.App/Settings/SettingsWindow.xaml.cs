@@ -23,7 +23,13 @@ public partial class SettingsWindow : Window
         StartWithWindowsCheckBox.IsChecked = settings.StartWithWindows;
         GitHubLink.NavigateUri = new Uri(AppSettings.DefaultGitHubProjectUrl);
         GitHubLink.Inlines.Add(new Run(AppSettings.DefaultGitHubProjectUrl));
-        VersionText.Text = $"Version {typeof(SettingsWindow).Assembly.GetName().Version?.ToString(3) ?? "—"}";
+        var version = typeof(SettingsWindow).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), inherit: false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+            .FirstOrDefault()?.InformationalVersion
+            ?? typeof(SettingsWindow).Assembly.GetName().Version?.ToString(3)
+            ?? "—";
+        VersionText.Text = $"Version {version}";
 
         for (var i = 0; i < HotkeyComboBox.Items.Count; i++)
         {

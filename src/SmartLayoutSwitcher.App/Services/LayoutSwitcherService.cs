@@ -37,12 +37,11 @@ public sealed class LayoutSwitcherService : IDisposable
     private System.Threading.Timer? _longPressTimer;
     private bool _longPressRaised;
 
-    // Win is deferred while we learn whether the user will press Space. A Win
-    // key must always reach Windows as a balanced down/up pair, or not reach it
-    // at all; swallowing only its key-up makes the keyboard appear stuck.
-    private int _deferredWinVk;
-    private bool _deferredWinRelayed;
-    private bool _winSpaceRecognized;
+    // The first modifier can reach Windows before the second key completes our
+    // shortcut. Mask only its final release when the pair was actually handled,
+    // otherwise an ordinary Alt opens the app menu and an ordinary Win opens Start.
+    private bool _maskPrimaryRelease;
+    private bool _primaryDownPassedThrough;
 
     private bool _isInternalSwitch;
     private LayoutId _internalTarget = LayoutId.Empty;
@@ -110,8 +109,7 @@ public sealed class LayoutSwitcherService : IDisposable
 
     private KeyReaction OnKey(HookKeyEventArgs args)
     {
-        // Events emitted by SendVirtualKey below must flow to Windows unchanged;
-        // handling them again would recursively defer the synthetic Win key.
+        // The synthetic menu-mask event must flow to Windows unchanged.
         if (args.IsInjected)
             return KeyReaction.PassThrough;
 
@@ -124,7 +122,7 @@ public sealed class LayoutSwitcherService : IDisposable
         var usesWinSpace = _settings.Hotkey == HotkeyMode.WinSpace;
         var isPrimary = usesWinSpace
             ? args.VkCode is NativeMethods.VK_LWIN or NativeMethods.VK_RWIN
-            : args.VkCode == NativeMethods.VK_LMENU;
+            : IsPhysicalLeftAlt(args);
         var isSecondary = usesWinSpace
             ? args.VkCode == NativeMethods.VK_SPACE
             : args.VkCode == NativeMethods.VK_LSHIFT;
@@ -132,80 +130,53 @@ public sealed class LayoutSwitcherService : IDisposable
         KeyReaction reaction;
         if (isPrimary)
         {
-            reaction = usesWinSpace
-                ? RouteDeferredWin(args, now)
-                : args.IsKeyUp ? _reactor.PrimaryUp(now) : _reactor.PrimaryDown(now);
+            if (args.IsKeyUp)
+            {
+                if (_maskPrimaryRelease && _primaryDownPassedThrough)
+                    SendMenuMask("before primary release");
+
+                reaction = _reactor.PrimaryUp(now);
+                _maskPrimaryRelease = false;
+                _primaryDownPassedThrough = false;
+            }
+            else
+            {
+                reaction = _reactor.PrimaryDown(now);
+                if (reaction == KeyReaction.PassThrough)
+                    _primaryDownPassedThrough = true;
+            }
         }
         else if (isSecondary)
-        {
             reaction = args.IsKeyUp ? _reactor.SecondaryUp(now) : _reactor.SecondaryDown(now);
-            if (usesWinSpace && _reactor.IsEngaged)
-                _winSpaceRecognized = true;
-        }
         else if (_popup.IsOpen)
             reaction = RoutePopupKey(args);
         else
-        {
-            RelayDeferredWinForAnotherShortcut(usesWinSpace, args);
             reaction = args.IsKeyUp ? _reactor.OtherKeyUp() : _reactor.OtherKeyDown();
-        }
 
-        if (args.VkCode is NativeMethods.VK_RMENU or NativeMethods.VK_RSHIFT)
-            _log.Debug($"Right modifier 0x{args.VkCode:X2} passed through (AltGr safe).");
+        if (IsPhysicalRightAlt(args) || args.VkCode == NativeMethods.VK_RSHIFT)
+            _log.Debug($"Right modifier 0x{args.VkCode:X2} passed through.");
 
         return reaction;
     }
 
-    private KeyReaction RouteDeferredWin(HookKeyEventArgs args, long now)
+    private static bool IsPhysicalLeftAlt(HookKeyEventArgs args) =>
+        !args.IsExtended && args.VkCode is (NativeMethods.VK_LMENU or NativeMethods.VK_MENU);
+
+    private static bool IsPhysicalRightAlt(HookKeyEventArgs args) =>
+        args.IsExtended && args.VkCode is (NativeMethods.VK_RMENU or NativeMethods.VK_LMENU or NativeMethods.VK_MENU);
+
+    private void SendMenuMask(string phase)
     {
-        if (!args.IsKeyUp)
+        // A real Ctrl held by the user already prevents Alt's menu activation,
+        // so sending a synthetic Ctrl in that case could only disturb it.
+        if (NativeMethods.IsControlDown())
         {
-            if (_deferredWinVk == 0)
-            {
-                _deferredWinVk = args.VkCode;
-                _deferredWinRelayed = false;
-                _winSpaceRecognized = false;
-            }
-
-            _reactor.PrimaryDown(now);
-            return KeyReaction.Suppress;
-        }
-
-        _reactor.PrimaryUp(now);
-
-        if (_deferredWinVk == args.VkCode)
-        {
-            if (_deferredWinRelayed)
-            {
-                NativeMethods.SendVirtualKey(args.VkCode, keyUp: true);
-            }
-            else if (!_winSpaceRecognized)
-            {
-                // A plain Win press was deferred. Replay it as a complete pair
-                // so Start keeps its normal behaviour without leaving any key
-                // state behind in the foreground application.
-                NativeMethods.SendVirtualKey(args.VkCode);
-                NativeMethods.SendVirtualKey(args.VkCode, keyUp: true);
-            }
-
-            _deferredWinVk = 0;
-            _deferredWinRelayed = false;
-            _winSpaceRecognized = false;
-        }
-
-        return KeyReaction.Suppress;
-    }
-
-    private void RelayDeferredWinForAnotherShortcut(bool usesWinSpace, HookKeyEventArgs args)
-    {
-        if (!usesWinSpace || args.IsKeyUp || _deferredWinVk == 0 || _deferredWinRelayed || _winSpaceRecognized)
+            _log.Debug($"Menu mask skipped ({phase}): Ctrl is physically held.");
             return;
+        }
 
-        // Win was held for a different shortcut (for example Win+E), not our
-        // layout switch. Send its down event just before the other key reaches
-        // Windows, then balance it when the physical Win key is released.
-        NativeMethods.SendVirtualKey(_deferredWinVk);
-        _deferredWinRelayed = true;
+        NativeMethods.SendMenuMaskKeyStroke();
+        _log.Debug($"Menu mask sent ({phase}).");
     }
 
     private KeyReaction RoutePopupKey(HookKeyEventArgs args)
@@ -230,7 +201,12 @@ public sealed class LayoutSwitcherService : IDisposable
             if (_disposed || _popup.IsOpen)
                 return;
 
-            _log.Debug("Combo engaged (LAlt+LShift).");
+            _log.Debug("Layout shortcut engaged.");
+            _maskPrimaryRelease = true;
+            // Send the mask while the primary Alt/Win key is still physically
+            // down. Sending it only at key-up is too late for some Windows 11
+            // shell and menu implementations.
+            SendMenuMask("combo engaged");
             _longPressRaised = false;
 
             if (_settings.ShowPopupOnLongPress)

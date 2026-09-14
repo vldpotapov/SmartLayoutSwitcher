@@ -12,7 +12,7 @@ Smart Layout Switcher stays quietly in the system tray, never adds its own keybo
 
 ## Download and install
 
-Download the latest `SmartLayoutSwitcher-Setup-<version>.exe` from the [GitHub Releases page](https://github.com/vldpotapov/SmartLayoutSwitcher/releases/latest), run it, and follow the installer.
+Download the latest `SmartLayoutSwitcher-Setup-<version>.exe` from the [GitHub Releases page](https://github.com/vldpotapov/SmartLayoutSwitcher/releases/latest), run it, and follow the installer. During installation, choose **Win + Space** (the default) or **Left Alt + Left Shift** as your switching shortcut; it can be changed later in Settings.
 
 The installer is self-contained: the .NET runtime is included. Windows 10 or Windows 11, 64-bit, is required.
 
@@ -29,7 +29,7 @@ The installer is self-contained: the .NET runtime is included. Windows 10 or Win
 
 Open **Settings…** from the tray icon to configure:
 
-- the shortcut: **Left Alt + Left Shift** or **Win + Space**;
+- the shortcut: **Win + Space** or **Left Alt + Left Shift**;
 - popup display on a long press;
 - per-window layout memory;
 - launch at Windows sign-in;
