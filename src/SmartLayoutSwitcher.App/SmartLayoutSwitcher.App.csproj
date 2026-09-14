@@ -17,8 +17,9 @@
     <UseWPF>true</UseWPF>
     <UseSystemDrawing>true</UseSystemDrawing>
     <ApplicationIcon>..\..\assets\branding\smart-layout-switcher.ico</ApplicationIcon>
-    <Version>1.0.9</Version>
-    <InformationalVersion>1.0.9</InformationalVersion>
+    <Version>1.0.10</Version>
+    <InformationalVersion>1.0.10</InformationalVersion>
+    <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

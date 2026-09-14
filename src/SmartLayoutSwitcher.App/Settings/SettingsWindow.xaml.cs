@@ -29,6 +29,7 @@ public partial class SettingsWindow : Window
             .FirstOrDefault()?.InformationalVersion
             ?? typeof(SettingsWindow).Assembly.GetName().Version?.ToString(3)
             ?? "—";
+        version = version.Split('+', 2)[0];
         VersionText.Text = $"Version {version}";
 
         for (var i = 0; i < HotkeyComboBox.Items.Count; i++)
