@@ -70,6 +70,11 @@ public sealed class UpdateService
         {
             return new UpdateCheckResult(UpdateCheckStatus.Failed);
         }
+        catch (Exception)
+        {
+            // Update checks are optional and must never affect the switcher.
+            return new UpdateCheckResult(UpdateCheckStatus.Failed);
+        }
     }
 
     public async Task<string> DownloadInstallerAsync(UpdateInfo update, CancellationToken cancellationToken = default)

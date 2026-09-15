@@ -1,5 +1,6 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Drawing;
 using Hardcodet.Wpf.TaskbarNotification;
 
 namespace SmartLayoutSwitcher.App.Tray;
@@ -13,14 +14,18 @@ public sealed class TrayIcon : IDisposable
     private readonly TaskbarIcon _icon = new();
     private readonly MenuItem _current;
     private readonly MenuItem _pair;
+    private Icon? _currentIcon;
+    private bool _updateAvailable;
 
     public event Action? ExitRequested;
     public event Action? SettingsRequested;
 
-    public TrayIcon()
+    public TrayIcon(bool updateAvailable = false)
     {
-        _icon.Icon = TrayIconFactory.Create();
-        _icon.ToolTipText = "Smart Layout Switcher";
+        _updateAvailable = updateAvailable;
+        _currentIcon = TrayIconFactory.Create(updateAvailable);
+        _icon.Icon = _currentIcon;
+        _icon.ToolTipText = CreateToolTipText(updateAvailable);
 
         var menu = new ContextMenu();
 
@@ -61,8 +66,39 @@ public sealed class TrayIcon : IDisposable
             dispatcher.BeginInvoke(invoke);
     }
 
+    public void SetUpdateAvailable(bool updateAvailable)
+    {
+        var invoke = () =>
+        {
+            if (_updateAvailable == updateAvailable)
+                return;
+
+            _updateAvailable = updateAvailable;
+            var oldIcon = _currentIcon;
+            _currentIcon = TrayIconFactory.Create(updateAvailable);
+            _icon.Icon = _currentIcon;
+            _icon.ToolTipText = CreateToolTipText(updateAvailable);
+            oldIcon?.Dispose();
+        };
+
+        var dispatcher = Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+            invoke();
+        else
+            dispatcher.BeginInvoke(invoke);
+    }
+
     private static MenuItem CreateHeaderItem(string header) =>
         new() { Header = header, IsEnabled = false };
 
-    public void Dispose() => _icon.Dispose();
+    private static string CreateToolTipText(bool updateAvailable) =>
+        updateAvailable
+            ? "Smart Layout Switcher — update available"
+            : "Smart Layout Switcher";
+
+    public void Dispose()
+    {
+        _icon.Dispose();
+        _currentIcon?.Dispose();
+    }
 }

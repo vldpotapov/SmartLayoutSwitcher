@@ -26,6 +26,14 @@ public sealed class AppSettings
     public HotkeyMode Hotkey { get; set; } = HotkeyMode.WinSpace;
     public string GitHubProjectUrl { get; set; } = DefaultGitHubProjectUrl;
 
+    // Cached update state keeps normal launches offline and lets the tray show an
+    // already-known update immediately.
+    public DateTimeOffset? LastUpdateCheckUtc { get; set; }
+    public bool UpdateCheckFailed { get; set; }
+    public string? AvailableUpdateVersion { get; set; }
+    public string? AvailableUpdateDownloadUrl { get; set; }
+    public string? AvailableUpdateFileName { get; set; }
+
     public static string DirectoryPath =>
         System.IO.Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),

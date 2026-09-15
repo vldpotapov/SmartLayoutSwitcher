@@ -10,14 +10,15 @@ namespace SmartLayoutSwitcher.App.Settings;
 public partial class SettingsWindow : Window
 {
     private readonly AppSettings _settings;
-    private readonly UpdateService _updateService = new();
+    private readonly UpdateCoordinator _updates;
     private UpdateInfo? _availableUpdate;
 
     public event Action? SettingsSaved;
 
-    public SettingsWindow(AppSettings settings)
+    public SettingsWindow(AppSettings settings, UpdateCoordinator updates)
     {
         _settings = settings;
+        _updates = updates;
         InitializeComponent();
 
         EnabledCheckBox.IsChecked = settings.Enabled;
@@ -34,6 +35,8 @@ public partial class SettingsWindow : Window
             ?? "—";
         version = version.Split('+', 2)[0];
         VersionText.Text = $"Version {version}";
+
+        SetAvailableUpdate(_updates.AvailableUpdate);
 
         for (var i = 0; i < HotkeyComboBox.Items.Count; i++)
         {
@@ -69,15 +72,14 @@ public partial class SettingsWindow : Window
     {
         if (_availableUpdate is not null)
         {
-            await DownloadAvailableUpdateAsync(_availableUpdate);
+            await InstallAvailableUpdateAsync(_availableUpdate);
             return;
         }
 
         CheckForUpdatesButton.IsEnabled = false;
         UpdateStatusText.Text = "Checking…";
 
-        var installedVersion = NormalizeVersion(typeof(SettingsWindow).Assembly.GetName().Version);
-        var result = await _updateService.CheckAsync(installedVersion);
+        var result = await _updates.CheckAsync(force: true);
 
         switch (result.Status)
         {
@@ -85,9 +87,7 @@ public partial class SettingsWindow : Window
                 UpdateStatusText.Text = "You’re up to date.";
                 break;
             case UpdateCheckStatus.UpdateAvailable when result.Update is not null:
-                _availableUpdate = result.Update;
-                CheckForUpdatesButton.Content = $"Download {result.Update.Version}";
-                UpdateStatusText.Text = "A new version is available.";
+                SetAvailableUpdate(result.Update);
                 break;
             default:
                 UpdateStatusText.Text = "Couldn’t check for updates.";
@@ -97,30 +97,48 @@ public partial class SettingsWindow : Window
         CheckForUpdatesButton.IsEnabled = true;
     }
 
-    private async Task DownloadAvailableUpdateAsync(UpdateInfo update)
+    public void SetAvailableUpdate(UpdateInfo? update)
+    {
+        if (!Dispatcher.CheckAccess())
+        {
+            Dispatcher.BeginInvoke(() => SetAvailableUpdate(update));
+            return;
+        }
+
+        _availableUpdate = update;
+        if (update is not null)
+        {
+            CheckForUpdatesButton.Content = "Install update";
+            UpdateStatusText.Text = $"Version {update.Version} is available.";
+            return;
+        }
+
+        CheckForUpdatesButton.Content = "Check for updates";
+        UpdateStatusText.Text = _updates.IsUsingFreshCache && !_updates.LastCheckFailed
+            ? "You’re up to date."
+            : string.Empty;
+    }
+
+    private async Task InstallAvailableUpdateAsync(UpdateInfo update)
     {
         CheckForUpdatesButton.IsEnabled = false;
         UpdateStatusText.Text = "Downloading installer…";
 
         try
         {
-            var installerPath = await _updateService.DownloadInstallerAsync(update);
-            UpdateStatusText.Text = "Installer downloaded to Downloads.";
-            CheckForUpdatesButton.Content = "Download complete";
-            Process.Start(new ProcessStartInfo("explorer.exe", $"/select,\"{installerPath}\"") { UseShellExecute = true });
+            var installerPath = await _updates.DownloadInstallerAsync(update);
+            Process.Start(new ProcessStartInfo(installerPath) { UseShellExecute = true });
+            UpdateStatusText.Text = "Installer started.";
+            CheckForUpdatesButton.Content = "Install update";
+            CheckForUpdatesButton.IsEnabled = true;
         }
         catch (Exception)
         {
             UpdateStatusText.Text = "Download failed. Try again.";
-            CheckForUpdatesButton.Content = $"Download {update.Version}";
+            CheckForUpdatesButton.Content = "Install update";
             CheckForUpdatesButton.IsEnabled = true;
         }
     }
-
-    private static Version NormalizeVersion(Version? version) =>
-        version is null
-            ? new Version(0, 0, 0)
-            : new Version(version.Major, version.Minor, Math.Max(0, version.Build));
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
 }
