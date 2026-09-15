@@ -22,6 +22,7 @@ public sealed class AppSettings
     public bool RememberPerWindow { get; set; } = true;
     public bool StartWithWindows { get; set; }
     public bool ShowPopupOnLongPress { get; set; } = true;
+    public bool EnableSelectedTextConversion { get; set; } = true;
     public bool DebugLogEnabled { get; set; }
     public HotkeyMode Hotkey { get; set; } = HotkeyMode.WinSpace;
     public string GitHubProjectUrl { get; set; } = DefaultGitHubProjectUrl;

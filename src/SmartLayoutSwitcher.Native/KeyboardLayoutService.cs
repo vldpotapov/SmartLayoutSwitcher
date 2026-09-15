@@ -36,6 +36,21 @@ public sealed class KeyboardLayoutService
         return info with { Hkl = hkl };
     }
 
+    public IntPtr GetLayoutHandle(IntPtr hwnd)
+    {
+        if (hwnd == IntPtr.Zero)
+            return IntPtr.Zero;
+
+        var threadId = NativeMethods.GetWindowThreadProcessId(hwnd, out _);
+        return threadId == 0 ? IntPtr.Zero : NativeMethods.GetKeyboardLayout(threadId);
+    }
+
+    public bool TryGetLoadedLayoutHandle(LayoutId layout, out IntPtr hkl)
+    {
+        hkl = FindLoadedHkl(layout);
+        return hkl != IntPtr.Zero;
+    }
+
     public string? GetForegroundProcessName()
     {
         var hwnd = NativeMethods.GetForegroundWindow();

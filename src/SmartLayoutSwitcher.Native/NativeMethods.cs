@@ -36,8 +36,13 @@ public static class NativeMethods
     public const int VK_LWIN = 0x5B;
     public const int VK_RWIN = 0x5C;
     public const int VK_SPACE = 0x20;
+    public const int VK_SHIFT = 0x10;
+    public const int VK_C = 0x43;
+    public const int VK_V = 0x56;
+    public const int VK_ESCAPE = 0x1B;
 
     private const uint KEYEVENTF_KEYUP = 0x0002;
+    private const uint MAPVK_VK_TO_VSC = 0;
 
     // Extended window styles
     public const int GWL_EXSTYLE = -20;
@@ -81,9 +86,27 @@ public static class NativeMethods
         keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
     }
 
+    public static void SendControlShortcut(int virtualKey)
+    {
+        keybd_event(VK_CONTROL, 0, 0, UIntPtr.Zero);
+        keybd_event((byte)virtualKey, 0, 0, UIntPtr.Zero);
+        keybd_event((byte)virtualKey, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+        keybd_event(VK_CONTROL, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+    }
+
     public static bool IsControlDown() =>
         (GetAsyncKeyState(VK_LCONTROL) & 0x8000) != 0 ||
         (GetAsyncKeyState(VK_RCONTROL) & 0x8000) != 0;
+
+    public static bool IsLeftAltDown() => (GetAsyncKeyState(VK_LMENU) & 0x8000) != 0;
+
+    public static bool IsShiftDown() =>
+        (GetAsyncKeyState(VK_LSHIFT) & 0x8000) != 0 ||
+        (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0;
+
+    public static bool IsWinDown() =>
+        (GetAsyncKeyState(VK_LWIN) & 0x8000) != 0 ||
+        (GetAsyncKeyState(VK_RWIN) & 0x8000) != 0;
 
     public delegate void WinEventProc(IntPtr hWinEventHook, uint eventType, IntPtr hwnd, int idObject,
         int idChild, uint dwEventThread, uint dwmsEventTime);
@@ -118,6 +141,19 @@ public static class NativeMethods
 
     [DllImport("user32.dll")]
     public static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    public static extern uint GetClipboardSequenceNumber();
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern short VkKeyScanExW(char ch, IntPtr dwhkl);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern uint MapVirtualKeyExW(uint code, uint mapType, IntPtr dwhkl);
+
+    [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+    public static extern int ToUnicodeEx(uint virtualKey, uint scanCode, byte[] keyState,
+        StringBuilder buffer, int bufferLength, uint flags, IntPtr dwhkl);
 
     [DllImport("user32.dll")]
     public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);

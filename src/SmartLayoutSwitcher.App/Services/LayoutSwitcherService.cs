@@ -26,6 +26,7 @@ public sealed class LayoutSwitcherService : IDisposable
     private readonly LongPressResolver _longPress;
     private readonly WindowLayoutMemory _memory = new();
     private readonly PopupController _popup;
+    private readonly SelectedTextConversionService _selectedTextConverter = new();
     private readonly object _gate = new();
     private readonly System.Threading.Timer _pollTimer;
 
@@ -42,6 +43,14 @@ public sealed class LayoutSwitcherService : IDisposable
     // otherwise an ordinary Alt opens the app menu and an ordinary Win opens Start.
     private bool _maskPrimaryRelease;
     private bool _primaryDownPassedThrough;
+
+    // Win + Left Alt + Space is intentionally handled separately from the
+    // layout-switching reactor: it must take precedence over Win + Space.
+    private bool _textConversionActive;
+    private bool _textConversionWinDown;
+    private bool _textConversionAltDown;
+    private bool _textConversionSpaceDown;
+    private bool _textConversionScheduled;
 
     private bool _isInternalSwitch;
     private LayoutId _internalTarget = LayoutId.Empty;
@@ -118,6 +127,9 @@ public sealed class LayoutSwitcherService : IDisposable
         if (!_settings.Enabled && !_popup.IsOpen)
             return KeyReaction.PassThrough;
 
+        if (TryHandleSelectedTextConversionShortcut(args, out var textConversionReaction))
+            return textConversionReaction;
+
         var now = Environment.TickCount64;
         var usesWinSpace = _settings.Hotkey == HotkeyMode.WinSpace;
         var isPrimary = usesWinSpace
@@ -157,6 +169,134 @@ public sealed class LayoutSwitcherService : IDisposable
             _log.Debug($"Right modifier 0x{args.VkCode:X2} passed through.");
 
         return reaction;
+    }
+
+    private bool TryHandleSelectedTextConversionShortcut(HookKeyEventArgs args, out KeyReaction reaction)
+    {
+        if (_textConversionActive)
+        {
+            if (args.VkCode == NativeMethods.VK_SPACE)
+            {
+                if (args.IsKeyUp)
+                {
+                    _textConversionSpaceDown = false;
+                    ScheduleSelectedTextConversionIfReleased();
+                }
+
+                reaction = KeyReaction.Suppress;
+                return true;
+            }
+
+            if (args.VkCode is NativeMethods.VK_LWIN or NativeMethods.VK_RWIN)
+            {
+                if (args.IsKeyUp)
+                {
+                    _textConversionWinDown = false;
+                    ScheduleSelectedTextConversionIfReleased();
+                }
+
+                // Win-down reached Windows before Space completed the shortcut;
+                // its matching key-up must remain visible to avoid a stuck key.
+                reaction = KeyReaction.PassThrough;
+                return true;
+            }
+
+            if (IsPhysicalLeftAlt(args))
+            {
+                if (args.IsKeyUp)
+                {
+                    _textConversionAltDown = false;
+                    ScheduleSelectedTextConversionIfReleased();
+                }
+
+                // The initial Alt-down was also delivered, so keep it balanced.
+                reaction = KeyReaction.PassThrough;
+                return true;
+            }
+
+            reaction = KeyReaction.PassThrough;
+            return false;
+        }
+
+        if (!_settings.EnableSelectedTextConversion || args.IsKeyUp ||
+            args.VkCode != NativeMethods.VK_SPACE || _popup.IsOpen || _reactor.IsEngaged ||
+            !NativeMethods.IsWinDown() || !NativeMethods.IsLeftAltDown() ||
+            NativeMethods.IsControlDown() || NativeMethods.IsShiftDown())
+        {
+            reaction = KeyReaction.PassThrough;
+            return false;
+        }
+
+        // Both modifier downs have already reached Windows. Mark them as used
+        // before they are released, reset a pending Win+Space sequence, and only
+        // swallow Space (whose down never reached the foreground application).
+        _reactor.Reset();
+        StopLongPressTimer();
+        _longPressRaised = false;
+        _maskPrimaryRelease = false;
+        _primaryDownPassedThrough = false;
+        _textConversionActive = true;
+        _textConversionWinDown = true;
+        _textConversionAltDown = true;
+        _textConversionSpaceDown = true;
+        SendMenuMask("text conversion shortcut");
+        _log.Info("Selected-text conversion shortcut engaged.");
+
+        reaction = KeyReaction.Suppress;
+        return true;
+    }
+
+    private void ScheduleSelectedTextConversionIfReleased()
+    {
+        if (_textConversionWinDown || _textConversionAltDown || _textConversionSpaceDown || _textConversionScheduled)
+            return;
+
+        _textConversionActive = false;
+        _textConversionScheduled = true;
+        Prepare(() => _ = ConvertSelectedTextAsync());
+    }
+
+    private async Task ConvertSelectedTextAsync()
+    {
+        // Let the final modifier key-up finish in the foreground application
+        // before injecting Ctrl+C / Ctrl+V.
+        await Task.Delay(35);
+
+        IntPtr sourceHkl;
+        IntPtr targetHkl;
+        lock (_gate)
+        {
+            _textConversionScheduled = false;
+            if (_disposed || !_settings.EnableSelectedTextConversion)
+                return;
+
+            var hwnd = CurrentHwnd();
+            var current = QueryLayout(hwnd);
+            if (hwnd == IntPtr.Zero || current.IsEmpty)
+            {
+                _log.Warn("Selected-text conversion skipped: the foreground layout is unavailable.");
+                return;
+            }
+
+            _history.ApplyUserSelection(current);
+            if (!_history.TryGetToggleTarget(out var target) || !_layouts.TryGetLoadedLayoutHandle(target, out targetHkl))
+            {
+                _log.Info("Selected-text conversion skipped: choose two layouts first.");
+                return;
+            }
+
+            sourceHkl = _layouts.GetLayoutHandle(hwnd);
+            if (sourceHkl == IntPtr.Zero)
+            {
+                _log.Warn("Selected-text conversion skipped: source keyboard layout is unavailable.");
+                return;
+            }
+        }
+
+        var result = await _selectedTextConverter.ConvertAsync(sourceHkl, targetHkl);
+        _log.Info(result.Succeeded
+            ? $"Selected text converted ({result.ChangedCharacters} character(s) changed)."
+            : $"Selected-text conversion skipped: {result.Message}");
     }
 
     private static bool IsPhysicalLeftAlt(HookKeyEventArgs args) =>

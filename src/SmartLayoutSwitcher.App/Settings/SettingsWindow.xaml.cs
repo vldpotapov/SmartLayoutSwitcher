@@ -24,6 +24,7 @@ public partial class SettingsWindow : Window
         EnabledCheckBox.IsChecked = settings.Enabled;
         RememberWindowCheckBox.IsChecked = settings.RememberPerWindow;
         PopupCheckBox.IsChecked = settings.ShowPopupOnLongPress;
+        SelectedTextConversionCheckBox.IsChecked = settings.EnableSelectedTextConversion;
         StartWithWindowsCheckBox.IsChecked = settings.StartWithWindows;
         GitHubLink.NavigateUri = new Uri(AppSettings.DefaultGitHubProjectUrl);
         GitHubLink.Inlines.Add(new Run(AppSettings.DefaultGitHubProjectUrl));
@@ -53,6 +54,7 @@ public partial class SettingsWindow : Window
         _settings.Enabled = EnabledCheckBox.IsChecked == true;
         _settings.RememberPerWindow = RememberWindowCheckBox.IsChecked == true;
         _settings.ShowPopupOnLongPress = PopupCheckBox.IsChecked == true;
+        _settings.EnableSelectedTextConversion = SelectedTextConversionCheckBox.IsChecked == true;
         _settings.StartWithWindows = StartWithWindowsCheckBox.IsChecked == true;
         if (HotkeyComboBox.SelectedItem is ComboBoxItem { Tag: HotkeyMode mode })
             _settings.Hotkey = mode;

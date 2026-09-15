@@ -26,6 +26,8 @@
             <CheckBox x:Name="EnabledCheckBox" Content="Enable Smart Layout Switcher" />
             <CheckBox x:Name="RememberWindowCheckBox" Margin="0,8,0,0" Content="Remember layout for each window" />
             <CheckBox x:Name="PopupCheckBox" Margin="0,8,0,0" Content="Show popup on long press" />
+            <CheckBox x:Name="SelectedTextConversionCheckBox" Margin="0,8,0,0"
+                      Content="Fix selected text with Win + Left Alt + Space" />
             <CheckBox x:Name="StartWithWindowsCheckBox" Margin="0,8,0,0" Content="Start with Windows" />
         </StackPanel>
         <Image Grid.Row="0"
