@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.13-test.2"
+#define MyAppVersion "1.0.13-test.3"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
@@ -67,6 +67,31 @@ Root: HKCU; Subkey: "Software\SmartLayoutSwitcher"; ValueType: string; ValueName
 [Code]
 var
   HotkeyPage: TInputOptionWizardPage;
+
+procedure StopRunningApplication;
+var
+  AppPath: String;
+  ResultCode: Integer;
+begin
+  AppPath := ExpandConstant('{app}\{#MyAppExeName}');
+  if not FileExists(AppPath) then
+    exit;
+
+  { Newer versions close cleanly through the named shutdown request. }
+  Exec(AppPath, '--shutdown', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+  Sleep(750);
+
+  { Older test builds do not understand the shutdown request. The process has no
+    unsaved document state, so Setup can safely end only this application's process. }
+  Exec(ExpandConstant('{sys}\taskkill.exe'),
+    '/F /IM "{#MyAppExeName}"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if CurStep = ssInstall then
+    StopRunningApplication;
+end;
 
 procedure InitializeWizard;
 begin

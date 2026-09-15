@@ -10,9 +10,15 @@ namespace SmartLayoutSwitcher.App;
 
 public partial class App : Application
 {
+    private const string ShutdownEventName = "SmartLayoutSwitcher.ShutdownRequested";
     private readonly Mutex _mutex = new(initiallyOwned: true, name: "SmartLayoutSwitcher.SingleInstance");
+    private readonly EventWaitHandle _shutdownRequest = new(
+        initialState: false,
+        mode: EventResetMode.AutoReset,
+        name: ShutdownEventName);
     private bool _ownsMutex;
     private bool _shuttingDown;
+    private Thread? _shutdownListener;
 
     private AppSettings? _settings;
     private Logger? _log;
@@ -26,10 +32,20 @@ public partial class App : Application
 
         if (!_mutex.WaitOne(0, false))
         {
+            if (e.Args.Any(argument => string.Equals(argument, "--shutdown", StringComparison.OrdinalIgnoreCase)))
+                _shutdownRequest.Set();
+
             Shutdown(); // another instance is already running
             return;
         }
         _ownsMutex = true;
+
+        _shutdownListener = new Thread(WaitForShutdownRequest)
+        {
+            IsBackground = true,
+            Name = "SmartLayoutSwitcher shutdown listener"
+        };
+        _shutdownListener.Start();
 
         _settings = AppSettings.Load();
         ApplyInstallerHotkey(_settings);
@@ -117,6 +133,12 @@ public partial class App : Application
         Shutdown();
     }
 
+    private void WaitForShutdownRequest()
+    {
+        _shutdownRequest.WaitOne();
+        Dispatcher.BeginInvoke(RequestExit);
+    }
+
     protected override void OnExit(ExitEventArgs e)
     {
         if (_ownsMutex)
@@ -134,6 +156,8 @@ public partial class App : Application
                 // ignore
             }
         }
+
+        _shutdownRequest.Dispose();
 
         base.OnExit(e);
     }
