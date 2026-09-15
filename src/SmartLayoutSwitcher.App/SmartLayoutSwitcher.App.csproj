@@ -16,18 +16,21 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <UseSystemDrawing>true</UseSystemDrawing>
-    <ApplicationIcon>..\..\assets\branding\smart-layout-switcher.ico</ApplicationIcon>
-    <Version>1.0.13-test.1</Version>
-    <InformationalVersion>1.0.13 · Test build 1</InformationalVersion>
+    <ApplicationIcon>..\..\assets\installer\Lang-icon.ico</ApplicationIcon>
+    <Version>1.0.13-test.2</Version>
+    <InformationalVersion>1.0.13 · Test build 2</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="..\..\assets\branding\smart-layout-switcher.ico">
+    <EmbeddedResource Include="..\..\assets\installer\Lang-icon.ico">
       <LogicalName>SmartLayoutSwitcher.App.Resources.LangIcon.ico</LogicalName>
     </EmbeddedResource>
-    <Resource Include="..\..\assets\branding\smart-layout-switcher.ico">
+    <Resource Include="..\..\assets\installer\Lang-icon.ico">
       <Link>Resources\Lang-icon.ico</Link>
+    </Resource>
+    <Resource Include="..\..\assets\installer\Lang-icon.png">
+      <Link>Resources\Lang-icon.png</Link>
     </Resource>
   </ItemGroup>
 

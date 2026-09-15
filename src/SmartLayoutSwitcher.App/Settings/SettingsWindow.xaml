@@ -33,7 +33,7 @@
                Height="40"
                HorizontalAlignment="Right"
                VerticalAlignment="Top"
-               Source="/SmartLayoutSwitcher.App;component/Resources/Lang-icon.ico"
+               Source="/SmartLayoutSwitcher.App;component/Resources/Lang-icon.png"
                RenderOptions.BitmapScalingMode="HighQuality" />
 
         <StackPanel Grid.Row="2">

@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.13-test.1"
+#define MyAppVersion "1.0.13-test.2"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
@@ -20,9 +20,9 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\artifacts\installer
 OutputBaseFilename=SmartLayoutSwitcher-Setup-{#MyAppVersion}
-SetupIconFile=..\assets\branding\smart-layout-switcher.ico
+SetupIconFile=..\assets\installer\Lang-icon.ico
 WizardImageFile=..\assets\installer\setup-image@2x.png
-WizardSmallImageFile=..\assets\installer\Lang-icon.png
+WizardSmallImageFile=..\assets\installer\Lang-icon-wizard.png
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2/ultra64
 SolidCompression=yes
