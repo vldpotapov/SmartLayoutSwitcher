@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.12"
+#define MyAppVersion "1.0.13-test.1"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
@@ -21,6 +21,8 @@ ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\artifacts\installer
 OutputBaseFilename=SmartLayoutSwitcher-Setup-{#MyAppVersion}
 SetupIconFile=..\assets\branding\smart-layout-switcher.ico
+WizardImageFile=..\assets\installer\setup-image@2x.png
+WizardSmallImageFile=..\assets\installer\Lang-icon.png
 UninstallDisplayIcon={app}\{#MyAppExeName}
 Compression=lzma2/ultra64
 SolidCompression=yes
@@ -39,10 +41,12 @@ Name: "desktopicon"; Description: "Create a desktop icon"; Flags: unchecked
 [CustomMessages]
 english.HotkeyPageCaption=Keyboard shortcut
 english.HotkeyPageDescription=Choose the shortcut for switching layouts
+english.HotkeyPageInstructions=You can change this later in Settings.
 english.WinSpaceHotkey=Win + Space (recommended)
 english.AltShiftHotkey=Left Alt + Left Shift
 russian.HotkeyPageCaption=Сочетание клавиш
 russian.HotkeyPageDescription=Выберите сочетание для переключения раскладок
+russian.HotkeyPageInstructions=Его можно изменить позже в настройках приложения.
 russian.WinSpaceHotkey=Win + Space (рекомендуется)
 russian.AltShiftHotkey=Левый Alt + Левый Shift
 
@@ -62,35 +66,23 @@ Root: HKCU; Subkey: "Software\SmartLayoutSwitcher"; ValueType: string; ValueName
 
 [Code]
 var
-  HotkeyPage: TWizardPage;
-  WinSpaceRadio: TNewRadioButton;
-  AltShiftRadio: TNewRadioButton;
+  HotkeyPage: TInputOptionWizardPage;
 
 procedure InitializeWizard;
 begin
-  HotkeyPage := CreateCustomPage(wpSelectTasks,
+  HotkeyPage := CreateInputOptionPage(wpSelectTasks,
     ExpandConstant('{cm:HotkeyPageCaption}'),
-    ExpandConstant('{cm:HotkeyPageDescription}'));
-
-  WinSpaceRadio := TNewRadioButton.Create(HotkeyPage.Surface);
-  WinSpaceRadio.Parent := HotkeyPage.Surface;
-  WinSpaceRadio.Caption := ExpandConstant('{cm:WinSpaceHotkey}');
-  WinSpaceRadio.Left := ScaleX(8);
-  WinSpaceRadio.Top := ScaleY(12);
-  WinSpaceRadio.Width := HotkeyPage.SurfaceWidth - ScaleX(16);
-  WinSpaceRadio.Checked := True;
-
-  AltShiftRadio := TNewRadioButton.Create(HotkeyPage.Surface);
-  AltShiftRadio.Parent := HotkeyPage.Surface;
-  AltShiftRadio.Caption := ExpandConstant('{cm:AltShiftHotkey}');
-  AltShiftRadio.Left := ScaleX(8);
-  AltShiftRadio.Top := WinSpaceRadio.Top + ScaleY(28);
-  AltShiftRadio.Width := HotkeyPage.SurfaceWidth - ScaleX(16);
+    ExpandConstant('{cm:HotkeyPageDescription}'),
+    ExpandConstant('{cm:HotkeyPageInstructions}'),
+    True, False);
+  HotkeyPage.Add(ExpandConstant('{cm:WinSpaceHotkey}'));
+  HotkeyPage.Add(ExpandConstant('{cm:AltShiftHotkey}'));
+  HotkeyPage.SelectedValueIndex := 0;
 end;
 
 function GetSelectedHotkey(Param: String): String;
 begin
-  if AltShiftRadio.Checked then
+  if HotkeyPage.SelectedValueIndex = 1 then
     Result := 'LeftAltLeftShift'
   else
     Result := 'WinSpace';
