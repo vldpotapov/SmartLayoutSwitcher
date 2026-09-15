@@ -1,7 +1,7 @@
 # Smart Layout Switcher
 
 <p align="center">
-  <img src="assets/branding/smart-layout-switcher.png" width="128" alt="Smart Layout Switcher icon">
+  <img src="assets/installer/Lang-icon.png" width="128" alt="Smart Layout Switcher icon">
 </p>
 
 **A Mac-like keyboard layout switcher for Windows.** Switch instantly between your two working languages with one shortcut, or hold it to open a beautiful visual picker for every layout installed in Windows.
