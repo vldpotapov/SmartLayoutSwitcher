@@ -17,8 +17,8 @@
     <UseWPF>true</UseWPF>
     <UseSystemDrawing>true</UseSystemDrawing>
     <ApplicationIcon>..\..\assets\installer\Lang-icon.ico</ApplicationIcon>
-    <Version>1.0.18</Version>
-    <InformationalVersion>1.0.18</InformationalVersion>
+    <Version>1.0.19-test.1</Version>
+    <InformationalVersion>1.0.19 · Test build 1</InformationalVersion>
     <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
   </PropertyGroup>
 

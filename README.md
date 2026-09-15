@@ -24,7 +24,7 @@ The installer is self-contained: the .NET runtime is included. Windows 10 or Win
 - The active layout appears first in the popup, its paired layout second, followed by any other layouts installed in Windows.
 - The popup uses a snapshot of the desktop behind it for a soft background-blur effect. The snapshot is taken only when the popup opens, so it does not consume CPU while the app is idle.
 - The app never installs or loads layouts: it uses only the layouts and variants configured in Windows for the current user.
-- Select text typed in the wrong layout and press **Win + Left Alt + Space** to remap it to the other layout in the active pair. Characters that do not belong to the source layout are left unchanged.
+- Select text typed in the wrong layout and press **Win + Left Alt + Space** to remap it to the other layout in the active pair. The active layout then changes to that paired layout. Characters that do not belong to the source layout are left unchanged.
 
 ## Settings
 

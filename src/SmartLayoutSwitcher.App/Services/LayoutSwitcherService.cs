@@ -264,13 +264,15 @@ public sealed class LayoutSwitcherService : IDisposable
 
         IntPtr sourceHkl;
         IntPtr targetHkl;
+        IntPtr hwnd;
+        LayoutId target;
         lock (_gate)
         {
             _textConversionScheduled = false;
             if (_disposed || !_settings.EnableSelectedTextConversion)
                 return;
 
-            var hwnd = CurrentHwnd();
+            hwnd = CurrentHwnd();
             var current = QueryLayout(hwnd);
             if (hwnd == IntPtr.Zero || current.IsEmpty)
             {
@@ -279,7 +281,7 @@ public sealed class LayoutSwitcherService : IDisposable
             }
 
             _history.ApplyUserSelection(current);
-            if (!_history.TryGetToggleTarget(out var target) || !_layouts.TryGetLoadedLayoutHandle(target, out targetHkl))
+            if (!_history.TryGetToggleTarget(out target) || !_layouts.TryGetLoadedLayoutHandle(target, out targetHkl))
             {
                 _log.Info("Selected-text conversion skipped: choose two layouts first.");
                 return;
@@ -294,9 +296,39 @@ public sealed class LayoutSwitcherService : IDisposable
         }
 
         var result = await _selectedTextConverter.ConvertAsync(sourceHkl, targetHkl);
-        _log.Info(result.Succeeded
-            ? $"Selected text converted ({result.ChangedCharacters} character(s) changed)."
-            : $"Selected-text conversion skipped: {result.Message}");
+        if (!result.Succeeded)
+        {
+            _log.Info($"Selected-text conversion skipped: {result.Message}");
+            return;
+        }
+
+        var switched = SwitchToConvertedTextLayout(hwnd, target);
+        _log.Info(switched
+            ? $"Selected text converted ({result.ChangedCharacters} character(s) changed) and layout switched to {target}."
+            : $"Selected text converted ({result.ChangedCharacters} character(s) changed), but the layout could not be switched.");
+    }
+
+    private bool SwitchToConvertedTextLayout(IntPtr hwnd, LayoutId target)
+    {
+        lock (_gate)
+        {
+            if (_disposed || hwnd == IntPtr.Zero || target.IsEmpty)
+                return false;
+
+            // The text converter works in the foreground window. Do not change
+            // a layout in a window the user has already left while it was pasting.
+            if (CurrentHwnd() != hwnd)
+                return false;
+
+            if (!_layouts.SwitchTo(hwnd, target))
+                return false;
+
+            _history.ApplyInternalToggle();
+            _memory.Remember(hwnd, target);
+            BeginInternalSwitch(target);
+            RaiseStatus();
+            return true;
+        }
     }
 
     private static bool IsPhysicalLeftAlt(HookKeyEventArgs args) =>
