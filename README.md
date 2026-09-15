@@ -34,7 +34,7 @@ Open **Settings…** from the tray icon to configure:
 - per-window layout memory;
 - launch at Windows sign-in;
 - automatic daily update checks, with a turquoise dot on the tray icon when an update is ready;
-- checking manually, then downloading and starting the official installer from Settings;
+- checking manually, then opening the latest official release in the browser from Settings;
 - the project link.
 
 The tray menu provides the current layout, the active pair, Settings, and Exit.

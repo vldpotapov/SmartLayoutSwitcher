@@ -1,4 +1,3 @@
-using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -12,13 +11,13 @@ public enum UpdateCheckStatus
     Failed,
 }
 
-public sealed record UpdateInfo(Version Version, Uri DownloadUri, string FileName);
+public sealed record UpdateInfo(Version Version, Uri ReleasePageUri);
 
 public sealed record UpdateCheckResult(UpdateCheckStatus Status, UpdateInfo? Update = null);
 
 /// <summary>
-/// Reads the newest public GitHub release and downloads its installer on demand.
-/// No GitHub credential is required to update the public application.
+/// Reads the newest public GitHub release and verifies that it contains an
+/// installer. Downloading and running it remain the browser's responsibility.
 /// </summary>
 public sealed class UpdateService
 {
@@ -48,15 +47,15 @@ public sealed class UpdateService
                 return new UpdateCheckResult(UpdateCheckStatus.UpToDate);
 
             var asset = release.Assets?.FirstOrDefault(IsInstallerAsset);
-            if (asset is null || !Uri.TryCreate(asset.BrowserDownloadUrl, UriKind.Absolute, out var downloadUri) ||
-                !IsGitHubDownload(downloadUri))
+            if (asset is null || !Uri.TryCreate(release.HtmlUrl, UriKind.Absolute, out var releasePageUri) ||
+                !IsGitHubReleasePage(releasePageUri))
             {
                 return new UpdateCheckResult(UpdateCheckStatus.Failed);
             }
 
             return new UpdateCheckResult(
                 UpdateCheckStatus.UpdateAvailable,
-                new UpdateInfo(latestVersion, downloadUri, Path.GetFileName(asset.Name)));
+                new UpdateInfo(latestVersion, releasePageUri));
         }
         catch (HttpRequestException)
         {
@@ -77,53 +76,6 @@ public sealed class UpdateService
         }
     }
 
-    public async Task<string> DownloadInstallerAsync(UpdateInfo update, CancellationToken cancellationToken = default)
-    {
-        var downloadsDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-            "Downloads");
-        Directory.CreateDirectory(downloadsDirectory);
-
-        var destinationPath = Path.Combine(downloadsDirectory, update.FileName);
-        var temporaryPath = destinationPath + ".download";
-
-        try
-        {
-            using var request = new HttpRequestMessage(HttpMethod.Get, update.DownloadUri);
-            using var response = await HttpClient.SendAsync(
-                request,
-                HttpCompletionOption.ResponseHeadersRead,
-                cancellationToken);
-            response.EnsureSuccessStatusCode();
-
-            await using var source = await response.Content.ReadAsStreamAsync(cancellationToken);
-            await using var destination = new FileStream(
-                temporaryPath,
-                FileMode.Create,
-                FileAccess.Write,
-                FileShare.None,
-                bufferSize: 81920,
-                useAsync: true);
-            await source.CopyToAsync(destination, cancellationToken);
-
-            File.Move(temporaryPath, destinationPath, overwrite: true);
-            return destinationPath;
-        }
-        catch
-        {
-            try
-            {
-                File.Delete(temporaryPath);
-            }
-            catch
-            {
-                // A failed cleanup must not hide the download error.
-            }
-
-            throw;
-        }
-    }
-
     private static HttpClient CreateHttpClient()
     {
         var client = new HttpClient { Timeout = TimeSpan.FromSeconds(20) };
@@ -136,10 +88,10 @@ public sealed class UpdateService
         asset.Name.StartsWith("SmartLayoutSwitcher-Setup-", StringComparison.OrdinalIgnoreCase) &&
         asset.Name.EndsWith(".exe", StringComparison.OrdinalIgnoreCase);
 
-    private static bool IsGitHubDownload(Uri uri) =>
+    private static bool IsGitHubReleasePage(Uri uri) =>
         uri.Scheme == Uri.UriSchemeHttps &&
-        (uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) ||
-         uri.Host.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase));
+        uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) &&
+        uri.AbsolutePath.StartsWith("/vldpotapov/SmartLayoutSwitcher/releases/", StringComparison.OrdinalIgnoreCase);
 
     private static bool TryParseVersion(string? tagName, out Version version)
     {
@@ -159,9 +111,9 @@ public sealed class UpdateService
 
     private sealed record GitHubRelease(
         [property: JsonPropertyName("tag_name")] string TagName,
+        [property: JsonPropertyName("html_url")] string HtmlUrl,
         [property: JsonPropertyName("assets")] GitHubAsset[]? Assets);
 
     private sealed record GitHubAsset(
-        [property: JsonPropertyName("name")] string Name,
-        [property: JsonPropertyName("browser_download_url")] string BrowserDownloadUrl);
+        [property: JsonPropertyName("name")] string Name);
 }

@@ -72,7 +72,7 @@ public partial class SettingsWindow : Window
     {
         if (_availableUpdate is not null)
         {
-            await InstallAvailableUpdateAsync(_availableUpdate);
+            OpenReleasePage(_availableUpdate);
             return;
         }
 
@@ -108,7 +108,7 @@ public partial class SettingsWindow : Window
         _availableUpdate = update;
         if (update is not null)
         {
-            CheckForUpdatesButton.Content = "Install update";
+            CheckForUpdatesButton.Content = "Open download page";
             UpdateStatusText.Text = $"Version {update.Version} is available.";
             return;
         }
@@ -119,24 +119,16 @@ public partial class SettingsWindow : Window
             : string.Empty;
     }
 
-    private async Task InstallAvailableUpdateAsync(UpdateInfo update)
+    private void OpenReleasePage(UpdateInfo update)
     {
-        CheckForUpdatesButton.IsEnabled = false;
-        UpdateStatusText.Text = "Downloading installer…";
-
         try
         {
-            var installerPath = await _updates.DownloadInstallerAsync(update);
-            Process.Start(new ProcessStartInfo(installerPath) { UseShellExecute = true });
-            UpdateStatusText.Text = "Installer started.";
-            CheckForUpdatesButton.Content = "Install update";
-            CheckForUpdatesButton.IsEnabled = true;
+            Process.Start(new ProcessStartInfo(update.ReleasePageUri.AbsoluteUri) { UseShellExecute = true });
+            UpdateStatusText.Text = "The release page was opened in your browser.";
         }
         catch (Exception)
         {
-            UpdateStatusText.Text = "Download failed. Try again.";
-            CheckForUpdatesButton.Content = "Install update";
-            CheckForUpdatesButton.IsEnabled = true;
+            UpdateStatusText.Text = "Couldn’t open the release page.";
         }
     }
 

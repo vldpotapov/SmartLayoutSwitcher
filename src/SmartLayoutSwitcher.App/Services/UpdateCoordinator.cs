@@ -23,6 +23,16 @@ public sealed class UpdateCoordinator
         _updateService = updateService ?? new UpdateService();
         AvailableUpdate = ReadCachedUpdate();
 
+        if (AvailableUpdate is null && !string.IsNullOrWhiteSpace(_settings.AvailableUpdateVersion))
+        {
+            // Cache entries from 1.0.15 stored a direct asset URL. Drop them so
+            // this version can refresh a browser-release-page URL immediately.
+            ClearAvailableUpdate();
+            _settings.LastUpdateCheckUtc = null;
+            _settings.UpdateCheckFailed = false;
+            _settings.Save();
+        }
+
         if (AvailableUpdate is not null && AvailableUpdate.Version <= _installedVersion)
         {
             ClearAvailableUpdate();
@@ -39,9 +49,6 @@ public sealed class UpdateCoordinator
     public bool IsUsingFreshCache =>
         _settings.LastUpdateCheckUtc is { } checkedAt &&
         DateTimeOffset.UtcNow - checkedAt < (_settings.UpdateCheckFailed ? FailedCheckInterval : SuccessfulCheckInterval);
-
-    public Task<string> DownloadInstallerAsync(UpdateInfo update, CancellationToken cancellationToken = default) =>
-        _updateService.DownloadInstallerAsync(update, cancellationToken);
 
     public async Task<UpdateCheckResult> CheckAsync(bool force = false, CancellationToken cancellationToken = default)
     {
@@ -74,22 +81,21 @@ public sealed class UpdateCoordinator
     private UpdateInfo? ReadCachedUpdate()
     {
         if (!Version.TryParse(_settings.AvailableUpdateVersion, out var version) ||
-            !Uri.TryCreate(_settings.AvailableUpdateDownloadUrl, UriKind.Absolute, out var downloadUri) ||
-            string.IsNullOrWhiteSpace(_settings.AvailableUpdateFileName) ||
-            !IsGitHubDownload(downloadUri))
+            !Uri.TryCreate(_settings.AvailableUpdateDownloadUrl, UriKind.Absolute, out var releasePageUri) ||
+            !IsGitHubReleasePage(releasePageUri))
         {
             return null;
         }
 
-        return new UpdateInfo(NormalizeVersion(version), downloadUri, _settings.AvailableUpdateFileName);
+        return new UpdateInfo(NormalizeVersion(version), releasePageUri);
     }
 
     private void SetAvailableUpdate(UpdateInfo update)
     {
         AvailableUpdate = update;
         _settings.AvailableUpdateVersion = update.Version.ToString(3);
-        _settings.AvailableUpdateDownloadUrl = update.DownloadUri.AbsoluteUri;
-        _settings.AvailableUpdateFileName = update.FileName;
+        _settings.AvailableUpdateDownloadUrl = update.ReleasePageUri.AbsoluteUri;
+        _settings.AvailableUpdateFileName = null;
         UpdateAvailabilityChanged?.Invoke(update);
     }
 
@@ -105,10 +111,10 @@ public sealed class UpdateCoordinator
             UpdateAvailabilityChanged?.Invoke(null);
     }
 
-    private static bool IsGitHubDownload(Uri uri) =>
+    private static bool IsGitHubReleasePage(Uri uri) =>
         uri.Scheme == Uri.UriSchemeHttps &&
-        (uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) ||
-         uri.Host.EndsWith(".github.com", StringComparison.OrdinalIgnoreCase));
+        uri.Host.Equals("github.com", StringComparison.OrdinalIgnoreCase) &&
+        uri.AbsolutePath.StartsWith("/vldpotapov/SmartLayoutSwitcher/releases/", StringComparison.OrdinalIgnoreCase);
 
     private static Version NormalizeVersion(Version version) =>
         new(version.Major, version.Minor, Math.Max(0, version.Build));
