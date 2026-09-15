@@ -4,9 +4,13 @@
   <img src="assets/installer/Lang-icon.png" width="128" alt="Smart Layout Switcher icon">
 </p>
 
-**A Mac-like keyboard layout switcher for Windows.** Switch instantly between your two working languages with one shortcut, or hold it to open a beautiful visual picker for every layout installed in Windows.
+**A Mac-style keyboard language switcher for Windows.**
 
-Smart Layout Switcher stays quietly in the system tray, never adds its own keyboard layouts, and is designed to keep normal typing uninterrupted. It works only with the languages and layout variants already configured for the current Windows user.
+Smart Layout Switcher makes changing keyboard languages feel natural. Tap one shortcut to move between the two layouts you use most. Hold it to open a clean visual picker, then choose any layout already installed in Windows.
+
+If you type a word in the wrong language, select it and press **Win + Left Alt + Space**. The app remaps the characters to the other language in your active pair and switches to that layout, so you can keep typing without interruption.
+
+It stays quietly in the system tray, adds no layouts of its own, and works solely with the languages and layout variants configured for the current Windows user.
 
 <img src="assets/screenshots/language-picker.png" width="100%" alt="Smart Layout Switcher language picker">
 
