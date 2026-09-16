@@ -1,8 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Navigation;
+using System.Windows.Media;
 using SmartLayoutSwitcher.App.Services;
 
 namespace SmartLayoutSwitcher.App.Settings;
@@ -26,8 +25,6 @@ public partial class SettingsWindow : Window
         PopupCheckBox.IsChecked = settings.ShowPopupOnLongPress;
         SelectedTextConversionCheckBox.IsChecked = settings.EnableSelectedTextConversion;
         StartWithWindowsCheckBox.IsChecked = settings.StartWithWindows;
-        GitHubLink.NavigateUri = new Uri(AppSettings.DefaultGitHubProjectUrl);
-        GitHubLink.Inlines.Add(new Run(AppSettings.DefaultGitHubProjectUrl));
         var version = typeof(SettingsWindow).Assembly
             .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), inherit: false)
             .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
@@ -64,10 +61,9 @@ public partial class SettingsWindow : Window
         Close();
     }
 
-    private void GitHubLink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    private void GitHubButton_Click(object sender, RoutedEventArgs e)
     {
-        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
-        e.Handled = true;
+        Process.Start(new ProcessStartInfo(AppSettings.DefaultGitHubProjectUrl) { UseShellExecute = true });
     }
 
     private async void CheckForUpdates_Click(object sender, RoutedEventArgs e)
@@ -79,6 +75,7 @@ public partial class SettingsWindow : Window
         }
 
         CheckForUpdatesButton.IsEnabled = false;
+        UpdateStatusIcon.Visibility = Visibility.Collapsed;
         UpdateStatusText.Text = "Checking…";
 
         var result = await _updates.CheckAsync(force: true);
@@ -86,13 +83,15 @@ public partial class SettingsWindow : Window
         switch (result.Status)
         {
             case UpdateCheckStatus.UpToDate:
-                UpdateStatusText.Text = "You’re up to date.";
+                UpdateStatusText.Text = "You’re up to date";
+                UpdateStatusIcon.Visibility = Visibility.Visible;
                 break;
             case UpdateCheckStatus.UpdateAvailable when result.Update is not null:
                 SetAvailableUpdate(result.Update);
                 break;
             default:
                 UpdateStatusText.Text = "Couldn’t check for updates.";
+                UpdateStatusIcon.Visibility = Visibility.Collapsed;
                 break;
         }
 
@@ -112,13 +111,14 @@ public partial class SettingsWindow : Window
         {
             CheckForUpdatesButton.Content = "Open download page";
             UpdateStatusText.Text = $"Version {update.Version} is available.";
+            UpdateStatusIcon.Visibility = Visibility.Collapsed;
             return;
         }
 
         CheckForUpdatesButton.Content = "Check for updates";
-        UpdateStatusText.Text = _updates.IsUsingFreshCache && !_updates.LastCheckFailed
-            ? "You’re up to date."
-            : string.Empty;
+        var upToDate = _updates.IsUsingFreshCache && !_updates.LastCheckFailed;
+        UpdateStatusText.Text = upToDate ? "You’re up to date" : string.Empty;
+        UpdateStatusIcon.Visibility = upToDate ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OpenReleasePage(UpdateInfo update)

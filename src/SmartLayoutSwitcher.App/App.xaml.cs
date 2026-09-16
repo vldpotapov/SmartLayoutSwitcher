@@ -74,6 +74,7 @@ public partial class App : Application
 
         _tray = new TrayIcon(_updates.AvailableUpdate is not null);
         _tray.SettingsRequested += ShowSettings;
+        _tray.CheckForUpdatesRequested += CheckForUpdatesFromTray;
         _tray.ExitRequested += RequestExit;
 
         _service.Enabled = _settings.Enabled;
@@ -138,6 +139,15 @@ public partial class App : Application
         _log?.Info(update is null
             ? "No update is available."
             : $"Update {update.Version} is available.");
+    }
+
+    private async void CheckForUpdatesFromTray()
+    {
+        if (_updates is null)
+            return;
+
+        var result = await _updates.CheckAsync(force: true);
+        _log?.Info($"Tray update check finished: {result.Status}.");
     }
 
     private void RequestExit()

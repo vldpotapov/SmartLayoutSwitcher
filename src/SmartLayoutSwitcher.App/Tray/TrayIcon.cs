@@ -1,24 +1,29 @@
 using System.Windows;
 using System.Windows.Controls;
-using System.Drawing;
+using System.Windows.Media.Imaging;
 using Hardcodet.Wpf.TaskbarNotification;
+using SmartLayoutSwitcher.App.Controls;
+using Icon = System.Drawing.Icon;
 
 namespace SmartLayoutSwitcher.App.Tray;
 
 /// <summary>
-/// System tray icon + context menu (spec §21). Pure WPF via Hardcodet.NotifyIcon.Wpf,
-/// so no extra WinForms message loop is needed.
+/// System tray icon with a WPF-rendered context menu. Keeping it a ContextMenu
+/// preserves Windows' reliable taskbar anchoring while allowing the menu itself
+/// to follow the application's visual language.
 /// </summary>
 public sealed class TrayIcon : IDisposable
 {
     private readonly TaskbarIcon _icon = new();
     private readonly MenuItem _current;
-    private readonly MenuItem _pair;
+    private readonly TextBlock _currentText;
+    private readonly TextBlock _pairText;
     private Icon? _currentIcon;
     private bool _updateAvailable;
 
     public event Action? ExitRequested;
     public event Action? SettingsRequested;
+    public event Action? CheckForUpdatesRequested;
 
     public TrayIcon(bool updateAvailable = false)
     {
@@ -27,25 +32,30 @@ public sealed class TrayIcon : IDisposable
         _icon.Icon = _currentIcon;
         _icon.ToolTipText = CreateToolTipText(updateAvailable);
 
-        var menu = new ContextMenu();
+        var menu = new ContextMenu
+        {
+            Style = Resource<Style>("TrayContextMenuStyle"),
+        };
 
-        var header = new MenuItem { Header = "Smart Layout Switcher", IsEnabled = false };
-        _current = CreateHeaderItem("Current: —");
-        _pair = CreateHeaderItem("Pair: —");
+        var header = CreateItem("Smart Layout Switcher", CreateBrandIcon(), interactive: false);
+        (_current, _currentText, _pairText) = CreateStatusItem();
 
-        var exit = new MenuItem { Header = "Exit" };
-        exit.Click += (_, _) => ExitRequested?.Invoke();
-
-        var settings = new MenuItem { Header = "Settings…" };
+        var settings = CreateItem("Settings", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Settings/general.svg"));
         settings.Click += (_, _) => SettingsRequested?.Invoke();
 
+        var checkForUpdates = CreateItem("Check for updates", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Tray/check-updates.svg"));
+        checkForUpdates.Click += (_, _) => CheckForUpdatesRequested?.Invoke();
+
+        var exit = CreateItem("Quit", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Tray/quit.svg"));
+        exit.Click += (_, _) => ExitRequested?.Invoke();
+
         menu.Items.Add(header);
-        menu.Items.Add(new Separator());
+        menu.Items.Add(CreateSeparator());
         menu.Items.Add(_current);
-        menu.Items.Add(_pair);
-        menu.Items.Add(new Separator());
+        menu.Items.Add(CreateSeparator());
         menu.Items.Add(settings);
-        menu.Items.Add(new Separator());
+        menu.Items.Add(checkForUpdates);
+        menu.Items.Add(CreateSeparator());
         menu.Items.Add(exit);
 
         _icon.ContextMenu = menu;
@@ -55,8 +65,8 @@ public sealed class TrayIcon : IDisposable
     {
         var invoke = () =>
         {
-            _current.Header = $"Current: {current}";
-            _pair.Header = $"Pair: {pair}";
+            _currentText.Text = $"Current: {current}";
+            _pairText.Text = $"Pair: {pair}";
         };
 
         var dispatcher = Application.Current?.Dispatcher;
@@ -88,8 +98,75 @@ public sealed class TrayIcon : IDisposable
             dispatcher.BeginInvoke(invoke);
     }
 
-    private static MenuItem CreateHeaderItem(string header) =>
-        new() { Header = header, IsEnabled = false };
+    private static MenuItem CreateItem(object header, object icon, bool interactive = true) => new()
+    {
+        Header = header,
+        Icon = icon,
+        Style = Resource<Style>("TrayMenuItemStyle"),
+        IsHitTestVisible = interactive,
+        Focusable = interactive,
+    };
+
+    private static (MenuItem Item, TextBlock Current, TextBlock Pair) CreateStatusItem()
+    {
+        var current = new TextBlock
+        {
+            FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+            FontSize = 20,
+            FontWeight = FontWeights.SemiBold,
+            Foreground = System.Windows.Media.Brushes.Black,
+            Text = "Current: —",
+        };
+        var pair = new TextBlock
+        {
+            Margin = new Thickness(0, 7, 0, 0),
+            FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
+            FontSize = 16,
+            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x66, 0x66, 0x66)),
+            Text = "Pair: —",
+        };
+        var header = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
+        header.Children.Add(current);
+        header.Children.Add(pair);
+
+        var item = CreateItem(header, CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Settings/switch.svg"), interactive: false);
+        return (item, current, pair);
+    }
+
+    private static Separator CreateSeparator() => new()
+    {
+        Style = Resource<Style>("TraySeparatorStyle"),
+    };
+
+    private static Image CreateSvgIcon(string source) => new()
+    {
+        Width = 24,
+        Height = 24,
+        Source = SvgImageSource.Load(source),
+    };
+
+    private static Border CreateBrandIcon()
+    {
+        var image = new Image
+        {
+            Width = 48,
+            Height = 48,
+            Stretch = System.Windows.Media.Stretch.Uniform,
+            Source = new BitmapImage(new Uri("pack://application:,,,/SmartLayoutSwitcher.App;component/Resources/Lang-icon.png")),
+        };
+
+        return new Border
+        {
+            Width = 48,
+            Height = 48,
+            Background = System.Windows.Media.Brushes.White,
+            Child = image,
+        };
+    }
+
+    private static T Resource<T>(string key) where T : class =>
+        Application.Current?.TryFindResource(key) as T
+        ?? throw new InvalidOperationException($"Application resource '{key}' was not found.");
 
     private static string CreateToolTipText(bool updateAvailable) =>
         updateAvailable
