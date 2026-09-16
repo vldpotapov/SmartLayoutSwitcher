@@ -5,61 +5,61 @@
         xmlns:settings="clr-namespace:SmartLayoutSwitcher.App.Settings"
         Title="Smart Layout Switcher — Settings"
         Icon="/SmartLayoutSwitcher.App;component/Resources/Lang-icon.ico"
-        Width="927"
-        Height="998"
+        Width="696"
+        Height="777"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize"
         ShowInTaskbar="False"
-        UseLayoutRounding="True"
-        SnapsToDevicePixels="True">
+        UseLayoutRounding="False">
     <Window.Resources>
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="White" />
             <Setter Property="BorderBrush" Value="#E6E6E6" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="BorderThickness" Value="0.75" />
+            <Setter Property="CornerRadius" Value="7.5" />
         </Style>
         <Style x:Key="IconTileStyle" TargetType="Border">
-            <Setter Property="Width" Value="48" />
-            <Setter Property="Height" Value="48" />
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
             <Setter Property="Background" Value="#F2F2F2" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="4.5" />
         </Style>
         <Style x:Key="SectionTitleStyle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="FontSize" Value="24" />
+            <Setter Property="FontSize" Value="18" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="Foreground" Value="#141414" />
         </Style>
         <Style x:Key="SectionDescriptionStyle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontSize" Value="15" />
             <Setter Property="Foreground" Value="#666666" />
             <Setter Property="TextWrapping" Value="Wrap" />
         </Style>
         <Style x:Key="SettingLabelStyle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontSize" Value="18" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#141414" />
         </Style>
         <Style x:Key="SwitchToggleStyle" TargetType="ToggleButton">
-            <Setter Property="Width" Value="57" />
-            <Setter Property="Height" Value="30" />
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="21" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ToggleButton">
-                        <Border x:Name="Track" Background="#CCCCCC" BorderBrush="#0000001A" BorderThickness="1" CornerRadius="15">
-                            <Ellipse x:Name="Thumb" Width="24" Height="24" Margin="3" HorizontalAlignment="Left" Fill="#FFFFFFCC" />
+                        <Border x:Name="Track" Background="#CCCCCC" BorderBrush="#0000001A" BorderThickness="0.5" CornerRadius="10.5">
+                            <Ellipse x:Name="Thumb" Width="18" Height="18" Margin="1.5" HorizontalAlignment="Left" Fill="#F5F5F5" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsChecked" Value="True">
                                 <Setter TargetName="Track" Property="Background" Value="#388AF5" />
                                 <Setter TargetName="Thumb" Property="HorizontalAlignment" Value="Right" />
+                                <Setter TargetName="Thumb" Property="Fill" Value="#D7E8FD" />
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter Property="Opacity" Value="0.45" />
@@ -70,15 +70,14 @@
             </Setter>
         </Style>
         <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Height" Value="42" />
-            <Setter Property="Padding" Value="20,0" />
+            <Setter Property="Padding" Value="15,10" />
             <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#666666" />
-            <Setter Property="Background" Value="#F2F2F2" />
+            <Setter Property="Background" Value="White" />
             <Setter Property="BorderBrush" Value="#E6E6E6" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderThickness" Value="0.75" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -88,7 +87,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ButtonBorder" Property="Background" Value="#EAEAEA" />
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#E6E6E6" />
                             </Trigger>
                             <Trigger Property="IsPressed" Value="True">
                                 <Setter TargetName="ButtonBorder" Property="Background" Value="#DDDDDD" />
@@ -101,22 +100,46 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="AboutButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
+            <Setter Property="Background" Value="#F2F2F2" />
+            <Setter Property="BorderBrush" Value="#E6E6E6" />
+        </Style>
         <Style x:Key="PrimaryButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}">
             <Setter Property="Foreground" Value="White" />
             <Setter Property="Background" Value="#388AF5" />
             <Setter Property="BorderBrush" Value="#388AF5" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4.5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#327CDB" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Background" Value="#2B6CBE" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.5" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="CloseButtonStyle" TargetType="Button">
-            <Setter Property="Width" Value="32" />
-            <Setter Property="Height" Value="32" />
+            <Setter Property="Width" Value="30" />
+            <Setter Property="Height" Value="30" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="CloseBorder" Background="Transparent" CornerRadius="4">
-                            <Path Stroke="#000000" StrokeThickness="2" Data="M 8,8 L 24,24 M 24,8 L 8,24" />
+                        <Border x:Name="CloseBorder" Background="Transparent" CornerRadius="3">
+                            <Path Fill="#000000" Stretch="Uniform" Width="15" Height="15" HorizontalAlignment="Center" VerticalAlignment="Center" Data="M 16.3256,15 L 22.5,8.82562 L 21.1744,7.5 L 15,13.6744 L 8.82562,7.5 L 7.5,8.82562 L 13.6744,15 L 7.5,21.1744 L 8.82562,22.5 L 15,16.3256 L 21.1744,22.5 L 22.5,21.1744 L 16.3256,15 Z" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
@@ -128,106 +151,325 @@
             </Setter>
         </Style>
         <Style TargetType="ComboBox">
-            <Setter Property="Height" Value="42" />
-            <Setter Property="Padding" Value="18,0,10,0" />
+            <Setter Property="Height" Value="31.5" />
             <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontSize" Value="15" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Foreground" Value="#666666" />
-            <Setter Property="Background" Value="#F2F2F2" />
-            <Setter Property="BorderBrush" Value="#E6E6E6" />
-            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton x:Name="ToggleButton"
+                                          Background="Transparent"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border Background="{TemplateBinding Background}" />
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <Border IsHitTestVisible="False" Background="#F2F2F2" BorderBrush="#E6E6E6" BorderThickness="0.75" CornerRadius="4.5" Padding="15,0,7.5,0">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="15" />
+                                    </Grid.ColumnDefinitions>
+                                    <ContentPresenter Grid.Column="0"
+                                                      Content="{TemplateBinding SelectionBoxItem}"
+                                                      ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                                      ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
+                                                      VerticalAlignment="Center" />
+                                    <Path Grid.Column="1"
+                                          Data="M 0.5,0.5 L 4,5 L 7.5,0.5"
+                                          Stroke="#666666"
+                                          StrokeThickness="1.5"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          StrokeLineJoin="Round"
+                                          VerticalAlignment="Center"
+                                          HorizontalAlignment="Center" />
+                                </Grid>
+                            </Border>
+                            <Popup x:Name="PART_Popup"
+                                   AllowsTransparency="True"
+                                   Placement="Bottom"
+                                   Margin="0,4,0,0"
+                                   PopupAnimation="Slide"
+                                   IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Focusable="False">
+                                <Border Background="White" BorderBrush="#E6E6E6" BorderThickness="0.75" CornerRadius="6" Padding="6">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </Window.Resources>
 
-    <Border Background="#F2F2F2" CornerRadius="10" ClipToBounds="True">
-        <Grid>
+    <Border Background="#F2F2F2" CornerRadius="7.5" ClipToBounds="True">
+        <Grid Height="777">
             <Grid.RowDefinitions>
-                <RowDefinition Height="128" />
-                <RowDefinition Height="*" />
-                <RowDefinition Height="86" />
+                <RowDefinition Height="96" />
+                <RowDefinition Height="76.5" />
+                <RowDefinition Height="121.5" />
+                <RowDefinition Height="133.5" />
+                <RowDefinition Height="133.5" />
+                <RowDefinition Height="139.5" />
+                <RowDefinition Height="58.5" />
+                <RowDefinition Height="18" />
             </Grid.RowDefinitions>
-            <Grid Grid.Row="0" Margin="30,28,30,20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="72" />
-                    <ColumnDefinition Width="20" />
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="32" />
-                </Grid.ColumnDefinitions>
-                <Border Width="72" Height="72" CornerRadius="20" Background="#111111">
+
+            <!-- Header -->
+            <Grid Grid.Row="0" MouseLeftButtonDown="Header_MouseLeftButtonDown" Background="Transparent">
+                <Border Width="54" Height="54" Margin="22.5,27,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" CornerRadius="15" Background="#111111" Padding="6">
                     <Image Source="/SmartLayoutSwitcher.App;component/Resources/Lang-icon.png" Stretch="Uniform" />
                 </Border>
-                <StackPanel Grid.Column="2" VerticalAlignment="Center">
-                    <TextBlock FontFamily="Segoe UI" FontSize="36" FontWeight="Bold" Foreground="#141414" Text="Smart Layout Switcher" />
-                    <TextBlock Margin="0,2,0,0" FontFamily="Segoe UI" FontSize="24" Foreground="#666666" Text="Switch languages the way you expect" />
-                </StackPanel>
-                <Button Grid.Column="3" Style="{StaticResource CloseButtonStyle}" Click="Cancel_Click" />
+                <TextBlock Margin="91.5,21.75,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe UI" FontSize="27" FontWeight="Bold" Foreground="#141414" Text="Smart Layout Switcher" />
+                <TextBlock Margin="91.5,55.5,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" FontFamily="Segoe UI" FontSize="18" Foreground="#666666" Text="Switch languages the way you expect" />
+                <Button Style="{StaticResource CloseButtonStyle}" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,25,23,0" Click="Cancel_Click" />
             </Grid>
 
-            <StackPanel Grid.Row="1" Margin="30,0,30,0">
-                <Border Height="98" Style="{StaticResource CardStyle}">
-                    <Grid Margin="24,22">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="48" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /><ColumnDefinition Width="57" /></Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource IconTileStyle}"><Image Width="24" Height="24" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/enable.svg}" /></Border>
-                        <StackPanel Grid.Column="2" VerticalAlignment="Center"><TextBlock Style="{StaticResource SectionTitleStyle}" Text="Enable Smart Layout Switcher" /><TextBlock Style="{StaticResource SectionDescriptionStyle}" Text="Automatically switch keyboard layout and more" /></StackPanel>
-                        <ToggleButton x:Name="EnabledCheckBox" Grid.Column="3" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
-                    </Grid>
-                </Border>
+            <!-- Enable -->
+            <Border Grid.Row="1" Margin="22.5,0,23.25,0" Style="{StaticResource CardStyle}">
+                <Grid Margin="18,16.5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="42" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource IconTileStyle}">
+                        <Image Width="27" Height="27" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/enable.svg}" />
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Enable Smart Layout Switcher" />
+                        <TextBlock Margin="0,4.5,0,0" Style="{StaticResource SectionDescriptionStyle}" Text="Automatically switch keyboard layout and more" />
+                    </StackPanel>
+                    <ToggleButton x:Name="EnabledCheckBox" Grid.Column="4" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
+                </Grid>
+            </Border>
 
-                <Border Height="166" Margin="0,12,0,0" Style="{StaticResource CardStyle}">
-                    <Grid Margin="24,22">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="48" /><ColumnDefinition Width="20" /><ColumnDefinition Width="160" /><ColumnDefinition Width="20" /><ColumnDefinition Width="1" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource IconTileStyle}"><Image Width="24" Height="24" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/general.svg}" /></Border>
-                        <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource SectionTitleStyle}" Text="General" /><TextBlock Style="{StaticResource SectionDescriptionStyle}" Text="Basic behavior" /></StackPanel>
-                        <Border Grid.Column="4" Background="#E6E6E6" />
-                        <Grid Grid.Column="6"><Grid.RowDefinitions><RowDefinition Height="50" /><RowDefinition Height="20" /><RowDefinition Height="50" /></Grid.RowDefinitions>
-                            <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Start with Windows" /><ToggleButton x:Name="StartWithWindowsCheckBox" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
-                            <TextBlock Grid.Row="2" VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Remember layout for each window" /><ToggleButton x:Name="RememberWindowCheckBox" Grid.Row="2" HorizontalAlignment="Right" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
+            <!-- General -->
+            <Border Grid.Row="2" Margin="22.5,9,23.25,0" Style="{StaticResource CardStyle}">
+                <Grid Margin="18,16.5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="105" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="1.5" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource IconTileStyle}">
+                        <Image Width="27" Height="27" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/general.svg}" />
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="General" />
+                        <TextBlock Margin="0,4.5,0,0" Style="{StaticResource SectionDescriptionStyle}" Text="Basic Behavior" />
+                    </StackPanel>
+                    <Border Grid.Column="4" Background="#E6E6E6" />
+                    <Grid Grid.Column="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="36" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="36" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="42" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Start with Windows" />
+                            <ToggleButton x:Name="StartWithWindowsCheckBox" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="42" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Remember layout for each window" />
+                            <ToggleButton x:Name="RememberWindowCheckBox" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
                         </Grid>
                     </Grid>
-                </Border>
+                </Grid>
+            </Border>
 
-                <Border Height="158" Margin="0,12,0,0" Style="{StaticResource CardStyle}">
-                    <Grid Margin="24,22">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="48" /><ColumnDefinition Width="20" /><ColumnDefinition Width="160" /><ColumnDefinition Width="20" /><ColumnDefinition Width="1" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource IconTileStyle}"><Image Width="24" Height="24" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/switch.svg}" /></Border>
-                        <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource SectionTitleStyle}" Text="Switch" /><TextBlock Style="{StaticResource SectionDescriptionStyle}" Text="Shortcut &amp; behavior" /></StackPanel>
-                        <Border Grid.Column="4" Background="#E6E6E6" />
-                        <Grid Grid.Column="6"><Grid.RowDefinitions><RowDefinition Height="42" /><RowDefinition Height="10" /><RowDefinition Height="60" /></Grid.RowDefinitions>
-                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Keyboard shortcut" /><ComboBox x:Name="HotkeyComboBox" Grid.Column="2"><ComboBoxItem Tag="{x:Static settings:HotkeyMode.WinSpace}">Win + Space</ComboBoxItem><ComboBoxItem Tag="{x:Static settings:HotkeyMode.LeftAltLeftShift}">Left Alt + Left Shift</ComboBoxItem></ComboBox></Grid>
-                            <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="20" /><ColumnDefinition Width="57" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><TextBlock Style="{StaticResource SettingLabelStyle}" Text="Long press layout picker" /><TextBlock Style="{StaticResource SectionDescriptionStyle}" Text="Hold the keys to cycle through layouts" /></StackPanel><ToggleButton x:Name="PopupCheckBox" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" /></Grid>
+            <!-- Switch -->
+            <Border Grid.Row="3" Margin="22.5,9,23.25,0" Style="{StaticResource CardStyle}">
+                <Grid Margin="18,16.5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="105" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="1.5" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource IconTileStyle}">
+                        <Image Width="27" Height="27" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/switch.svg}" />
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Switch" />
+                        <TextBlock Margin="0,4.5,0,0" Style="{StaticResource SectionDescriptionStyle}" Text="Shortcut &amp; behavior" />
+                    </StackPanel>
+                    <Border Grid.Column="4" Background="#E6E6E6" />
+                    <Grid Grid.Column="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="33" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="51" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="210" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Keyboard shortcut" />
+                            <ComboBox x:Name="HotkeyComboBox" Grid.Column="2">
+                                <ComboBoxItem Tag="{x:Static settings:HotkeyMode.WinSpace}">Win + Space</ComboBoxItem>
+                                <ComboBoxItem Tag="{x:Static settings:HotkeyMode.LeftAltLeftShift}">Left Alt + Left Shift</ComboBoxItem>
+                            </ComboBox>
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="42" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource SettingLabelStyle}" Text="Long press layout picker" />
+                                <TextBlock Margin="0,3,0,0" Style="{StaticResource SectionDescriptionStyle}" Text="Hold the keys to cycle through layouts" />
+                            </StackPanel>
+                            <ToggleButton x:Name="PopupCheckBox" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
                         </Grid>
                     </Grid>
-                </Border>
+                </Grid>
+            </Border>
 
-                <Border Height="158" Margin="0,12,0,0" Style="{StaticResource CardStyle}">
-                    <Grid Margin="24,22">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="48" /><ColumnDefinition Width="20" /><ColumnDefinition Width="160" /><ColumnDefinition Width="20" /><ColumnDefinition Width="1" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource IconTileStyle}"><Image Width="24" Height="24" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/text-fix.svg}" /></Border>
-                        <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource SectionTitleStyle}" Text="Text Fix" /><TextBlock Style="{StaticResource SectionDescriptionStyle}" Text="Automatically fix&#x0a;selected text" /></StackPanel>
-                        <Border Grid.Column="4" Background="#E6E6E6" />
-                        <Grid Grid.Column="6"><Grid.RowDefinitions><RowDefinition Height="42" /><RowDefinition Height="10" /><RowDefinition Height="60" /></Grid.RowDefinitions>
-                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="180" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions><TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Keyboard shortcut" /><Border Grid.Column="2" Background="#F2F2F2" BorderBrush="#E6E6E6" BorderThickness="1" CornerRadius="6" Padding="20,0"><TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Foreground="#666666" Text="Win + Left Alt + Space" /></Border></Grid>
-                            <Grid Grid.Row="2"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="20" /><ColumnDefinition Width="57" /></Grid.ColumnDefinitions><StackPanel VerticalAlignment="Center"><TextBlock Style="{StaticResource SettingLabelStyle}" Text="Fix selected text" /><TextBlock Style="{StaticResource SectionDescriptionStyle}" Text="Converts text to the correct keyboard layout" /></StackPanel><ToggleButton x:Name="SelectedTextConversionCheckBox" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" /></Grid>
+            <!-- Text Fix -->
+            <Border Grid.Row="4" Margin="22.5,9,23.25,0" Style="{StaticResource CardStyle}">
+                <Grid Margin="18,16.5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="105" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="1.5" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource IconTileStyle}">
+                        <Image Width="27" Height="27" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/text-fix.svg}" />
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="Text Fix" />
+                        <TextBlock Margin="0,4.5,0,0" Style="{StaticResource SectionDescriptionStyle}" Text="Automatically fix selected text" />
+                    </StackPanel>
+                    <Border Grid.Column="4" Background="#E6E6E6" />
+                    <Grid Grid.Column="6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="33" />
+                            <RowDefinition Height="6" />
+                            <RowDefinition Height="51" />
+                        </Grid.RowDefinitions>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="200" />
+                                <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="210" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Keyboard shortcut" />
+                            <Border Grid.Column="2" Background="#F2F2F2" BorderBrush="#E6E6E6" BorderThickness="0.75" CornerRadius="4.5" Padding="15,0">
+                                <TextBlock VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="15" FontWeight="SemiBold" Foreground="#666666" Text="Win + Left Alt + Space" />
+                            </Border>
+                        </Grid>
+                        <Grid Grid.Row="2">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="15" />
+                                <ColumnDefinition Width="42" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Style="{StaticResource SettingLabelStyle}" Text="Fix selected text" />
+                                <TextBlock Margin="0,3,0,0" Style="{StaticResource SectionDescriptionStyle}" Text="Converts text to the correct keyboard layout" />
+                            </StackPanel>
+                            <ToggleButton x:Name="SelectedTextConversionCheckBox" Grid.Column="2" VerticalAlignment="Center" Style="{StaticResource SwitchToggleStyle}" />
                         </Grid>
                     </Grid>
-                </Border>
+                </Grid>
+            </Border>
 
-                <Border Height="138" Margin="0,12,0,0" Style="{StaticResource CardStyle}">
-                    <Grid Margin="24,22">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="48" /><ColumnDefinition Width="20" /><ColumnDefinition Width="160" /><ColumnDefinition Width="20" /><ColumnDefinition Width="1" /><ColumnDefinition Width="20" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                        <Border Style="{StaticResource IconTileStyle}"><Image Width="24" Height="24" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/about.svg}" /></Border>
-                        <StackPanel Grid.Column="2"><TextBlock Style="{StaticResource SectionTitleStyle}" Text="About" /><TextBlock Style="{StaticResource SectionDescriptionStyle}" Text="Version and updates" /></StackPanel>
-                        <Border Grid.Column="4" Background="#E6E6E6" />
-                        <Grid Grid.Column="6"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="20" /><ColumnDefinition Width="200" /></Grid.ColumnDefinitions>
-                            <StackPanel VerticalAlignment="Center"><TextBlock Style="{StaticResource SettingLabelStyle}" Text="Smart Layout Switcher" /><TextBlock x:Name="VersionText" Margin="0,4,0,0" Style="{StaticResource SectionDescriptionStyle}" /><StackPanel Margin="0,10,0,0" Orientation="Horizontal"><Image x:Name="UpdateStatusIcon" Width="24" Height="24" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Actions/success-check.svg}" /><TextBlock x:Name="UpdateStatusText" Margin="10,0,0,0" VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" /></StackPanel></StackPanel>
-                            <StackPanel Grid.Column="2" Width="200" VerticalAlignment="Center"><Button Height="42" Style="{StaticResource SecondaryButtonStyle}" Click="GitHubButton_Click"><StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Image Width="20" Height="20" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Actions/github.svg}" /><TextBlock Margin="6,0,0,0" Text="GitHub" /></StackPanel></Button><Button x:Name="CheckForUpdatesButton" Margin="0,10,0,0" Height="42" Style="{StaticResource SecondaryButtonStyle}" Content="Check for updates" Click="CheckForUpdates_Click" /></StackPanel>
-                        </Grid>
+            <!-- About -->
+            <Border Grid.Row="5" Margin="22.5,9,23.25,0" Style="{StaticResource CardStyle}">
+                <Grid Margin="18,16.5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="36" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="105" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="1.5" />
+                        <ColumnDefinition Width="15" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Border Style="{StaticResource IconTileStyle}">
+                        <Image Width="27" Height="27" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Settings/about.svg}" />
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                        <TextBlock Style="{StaticResource SectionTitleStyle}" Text="About" />
+                        <TextBlock Margin="0,4.5,0,0" Style="{StaticResource SectionDescriptionStyle}" Text="Version and updates" />
+                    </StackPanel>
+                    <Border Grid.Column="4" Background="#E6E6E6" />
+                    <Grid Grid.Column="6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="15" />
+                            <ColumnDefinition Width="180" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Style="{StaticResource SettingLabelStyle}" Text="Smart Layout Switcher" />
+                            <TextBlock x:Name="VersionText" Margin="0,3,0,0" Style="{StaticResource SectionDescriptionStyle}" />
+                            <StackPanel Margin="0,7.5,0,0" Orientation="Horizontal">
+                                <Image x:Name="UpdateStatusIcon" Width="18" Height="18" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Actions/success-check.svg}" />
+                                <TextBlock x:Name="UpdateStatusText" Margin="7.5,0,0,0" VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" />
+                            </StackPanel>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                            <Button Height="43.5" Style="{StaticResource AboutButtonStyle}" Click="GitHubButton_Click">
+                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                                    <Image Width="15" Height="15" Source="{controls:SvgImage Source=/SmartLayoutSwitcher.App;component/Resources/Actions/github.svg}" />
+                                    <TextBlock Margin="4.5,0,0,0" Text="GitHub" />
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="CheckForUpdatesButton" Margin="0,9,0,0" Height="43.5" Style="{StaticResource AboutButtonStyle}" Content="Check for updates" Click="CheckForUpdates_Click" />
+                        </StackPanel>
                     </Grid>
-                </Border>
-            </StackPanel>
+                </Grid>
+            </Border>
 
-            <Grid Grid.Row="2" Margin="30,0,30,24" VerticalAlignment="Bottom"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="160" /><ColumnDefinition Width="10" /><ColumnDefinition Width="160" /></Grid.ColumnDefinitions><TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Foreground="#666666" Text="© 2026 Smart Layout Switcher" /><Button Grid.Column="1" Height="54" Style="{StaticResource SecondaryButtonStyle}" Content="Cancel" IsCancel="True" Click="Cancel_Click" /><Button Grid.Column="3" Height="54" Style="{StaticResource PrimaryButtonStyle}" Content="Save" IsDefault="True" Click="Save_Click" /></Grid>
+            <!-- Footer -->
+            <Grid Grid.Row="6" Margin="22.5,18,23.25,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="7.5" />
+                    <ColumnDefinition Width="120" />
+                </Grid.ColumnDefinitions>
+                <TextBlock VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="18" FontWeight="SemiBold" Foreground="#141414" Text="© 2026 Smart Layout Switcher" />
+                <Button Grid.Column="1" Height="40.5" Style="{StaticResource SecondaryButtonStyle}" Content="Cancel" IsCancel="True" Click="Cancel_Click" />
+                <Button Grid.Column="3" Height="40.5" Style="{StaticResource PrimaryButtonStyle}" Content="Save" IsDefault="True" Click="Save_Click" />
+            </Grid>
         </Grid>
     </Border>
 </Window>

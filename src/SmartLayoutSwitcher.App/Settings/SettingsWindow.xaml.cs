@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using SmartLayoutSwitcher.App.Services;
 
@@ -135,4 +136,28 @@ public partial class SettingsWindow : Window
     }
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.LeftButton != MouseButtonState.Pressed)
+            return;
+
+        // Don't start a drag when the click lands on the close button.
+        if (e.OriginalSource is DependencyObject source && FindVisualParent<Button>(source) is not null)
+            return;
+
+        DragMove();
+    }
+
+    private static T? FindVisualParent<T>(DependencyObject child) where T : DependencyObject
+    {
+        var parent = VisualTreeHelper.GetParent(child);
+        while (parent is not null)
+        {
+            if (parent is T match)
+                return match;
+            parent = VisualTreeHelper.GetParent(parent);
+        }
+        return null;
+    }
 }

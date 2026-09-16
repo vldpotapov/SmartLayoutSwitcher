@@ -23,7 +23,6 @@ public sealed class TrayIcon : IDisposable
 
     public event Action? ExitRequested;
     public event Action? SettingsRequested;
-    public event Action? CheckForUpdatesRequested;
 
     public TrayIcon(bool updateAvailable = false)
     {
@@ -32,19 +31,13 @@ public sealed class TrayIcon : IDisposable
         _icon.Icon = _currentIcon;
         _icon.ToolTipText = CreateToolTipText(updateAvailable);
 
-        var menu = new ContextMenu
-        {
-            Style = Resource<Style>("TrayContextMenuStyle"),
-        };
+        var menu = new ContextMenu();
 
         var header = CreateItem("Smart Layout Switcher", CreateBrandIcon(), interactive: false);
         (_current, _currentText, _pairText) = CreateStatusItem();
 
         var settings = CreateItem("Settings", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Settings/general.svg"));
         settings.Click += (_, _) => SettingsRequested?.Invoke();
-
-        var checkForUpdates = CreateItem("Check for updates", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Tray/check-updates.svg"));
-        checkForUpdates.Click += (_, _) => CheckForUpdatesRequested?.Invoke();
 
         var exit = CreateItem("Quit", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Tray/quit.svg"));
         exit.Click += (_, _) => ExitRequested?.Invoke();
@@ -54,7 +47,6 @@ public sealed class TrayIcon : IDisposable
         menu.Items.Add(_current);
         menu.Items.Add(CreateSeparator());
         menu.Items.Add(settings);
-        menu.Items.Add(checkForUpdates);
         menu.Items.Add(CreateSeparator());
         menu.Items.Add(exit);
 
@@ -102,7 +94,6 @@ public sealed class TrayIcon : IDisposable
     {
         Header = header,
         Icon = icon,
-        Style = Resource<Style>("TrayMenuItemStyle"),
         IsHitTestVisible = interactive,
         Focusable = interactive,
     };
@@ -111,18 +102,11 @@ public sealed class TrayIcon : IDisposable
     {
         var current = new TextBlock
         {
-            FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-            FontSize = 20,
-            FontWeight = FontWeights.SemiBold,
-            Foreground = System.Windows.Media.Brushes.Black,
             Text = "Current: —",
         };
         var pair = new TextBlock
         {
-            Margin = new Thickness(0, 7, 0, 0),
-            FontFamily = new System.Windows.Media.FontFamily("Segoe UI"),
-            FontSize = 16,
-            Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x66, 0x66, 0x66)),
+            Margin = new Thickness(0, 2, 0, 0),
             Text = "Pair: —",
         };
         var header = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
@@ -133,15 +117,12 @@ public sealed class TrayIcon : IDisposable
         return (item, current, pair);
     }
 
-    private static Separator CreateSeparator() => new()
-    {
-        Style = Resource<Style>("TraySeparatorStyle"),
-    };
+    private static Separator CreateSeparator() => new();
 
     private static Image CreateSvgIcon(string source) => new()
     {
-        Width = 24,
-        Height = 24,
+        Width = 16,
+        Height = 16,
         Source = SvgImageSource.Load(source),
     };
 
@@ -149,24 +130,20 @@ public sealed class TrayIcon : IDisposable
     {
         var image = new Image
         {
-            Width = 48,
-            Height = 48,
             Stretch = System.Windows.Media.Stretch.Uniform,
             Source = new BitmapImage(new Uri("pack://application:,,,/SmartLayoutSwitcher.App;component/Resources/Lang-icon.png")),
         };
 
         return new Border
         {
-            Width = 48,
-            Height = 48,
-            Background = System.Windows.Media.Brushes.White,
+            Width = 16,
+            Height = 16,
+            Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x11, 0x11, 0x11)),
+            CornerRadius = new System.Windows.CornerRadius(3),
+            Padding = new Thickness(2),
             Child = image,
         };
     }
-
-    private static T Resource<T>(string key) where T : class =>
-        Application.Current?.TryFindResource(key) as T
-        ?? throw new InvalidOperationException($"Application resource '{key}' was not found.");
 
     private static string CreateToolTipText(bool updateAvailable) =>
         updateAvailable
