@@ -2,10 +2,12 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
-## [1.0.21-test.1] - 2026-09-17
+## [1.0.21] - 2026-09-18
 
 ### Settings window
 - Rebuilt the settings window from the new Figma design as a compact 504 × 517 dark interface.
+- Section outlines now render as a visible 1px border; the previous 0.5px border disappeared at 100% display scaling.
+- Fixed the Cancel and Save buttons being clipped at the bottom, and card content being squeezed by the 1px card borders.
 - Added dedicated dark settings icons without changing the icons used by the Windows tray menu.
 - Preserved the existing settings, shortcuts, update status, GitHub action, and dynamic version display.
 

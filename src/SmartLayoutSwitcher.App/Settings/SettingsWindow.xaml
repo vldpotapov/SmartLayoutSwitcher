@@ -16,10 +16,12 @@
         UseLayoutRounding="True"
         SnapsToDevicePixels="True">
     <Window.Resources>
+        <!-- Card content keeps 10px visual padding: the 1px card border is part of
+             that 10px (9px margin), so fixed-height rows are never squeezed. -->
         <Style x:Key="CardStyle" TargetType="Border">
             <Setter Property="Background" Value="#3B3B3B" />
             <Setter Property="BorderBrush" Value="#454545" />
-            <Setter Property="BorderThickness" Value="0.5" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="4" />
         </Style>
         <Style x:Key="IconTileStyle" TargetType="Border">
@@ -79,7 +81,7 @@
             <Setter Property="Foreground" Value="#E6E6E6" />
             <Setter Property="Background" Value="#454545" />
             <Setter Property="BorderBrush" Value="#545454" />
-            <Setter Property="BorderThickness" Value="0.5" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
@@ -185,7 +187,7 @@
                                     </ControlTemplate>
                                 </ToggleButton.Template>
                             </ToggleButton>
-                            <Border IsHitTestVisible="False" Background="#3B3B3B" BorderBrush="#545454" BorderThickness="0.5" CornerRadius="2" Padding="12,0,6,0">
+                            <Border IsHitTestVisible="False" Background="#3B3B3B" BorderBrush="#545454" BorderThickness="1" CornerRadius="2" Padding="12,0,6,0">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -204,7 +206,7 @@
                                    IsOpen="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
                                    Focusable="False">
                                 <Border MinWidth="{TemplateBinding ActualWidth}" Margin="0,3,0,0" Padding="2"
-                                        Background="#3B3B3B" BorderBrush="#545454" BorderThickness="0.5" CornerRadius="2">
+                                        Background="#3B3B3B" BorderBrush="#545454" BorderThickness="1" CornerRadius="2">
                                     <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Contained" />
                                 </Border>
                             </Popup>
@@ -215,8 +217,10 @@
         </Style>
     </Window.Resources>
 
-    <Border Background="#2C2C2C" BorderBrush="#454545" BorderThickness="0.5" CornerRadius="16" ClipToBounds="True">
-        <Grid Width="460" Height="477" Margin="20,20,24,20" HorizontalAlignment="Left" VerticalAlignment="Top">
+    <Border Background="#2C2C2C" BorderBrush="#454545" BorderThickness="1" CornerRadius="16" ClipToBounds="True">
+        <!-- Margins are the Figma 20/24 offsets minus the 1px window border, so the
+             fixed-height content still fits inside the border and cannot be clipped. -->
+        <Grid Width="460" Height="477" Margin="19,19,23,19" HorizontalAlignment="Left" VerticalAlignment="Top">
             <Grid.RowDefinitions>
                 <RowDefinition Height="37" />
                 <RowDefinition Height="12" />
@@ -251,7 +255,7 @@
             </Grid>
 
             <Border Grid.Row="2" Style="{StaticResource CardStyle}">
-                <Grid Margin="10,10,15,10">
+                <Grid Margin="10,9,15,9">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="24" />
                         <ColumnDefinition Width="15" />
@@ -271,7 +275,7 @@
             </Border>
 
             <Border Grid.Row="4" Style="{StaticResource CardStyle}">
-                <Grid Margin="10,10,15,10">
+                <Grid Margin="10,9,15,9">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="24" /><ColumnDefinition Width="15" /><ColumnDefinition Width="90" />
                         <ColumnDefinition Width="15" /><ColumnDefinition Width="1" /><ColumnDefinition Width="15" /><ColumnDefinition Width="*" />
@@ -293,7 +297,7 @@
             </Border>
 
             <Border Grid.Row="6" Style="{StaticResource CardStyle}">
-                <Grid Margin="10,10,15,10">
+                <Grid Margin="10,9,15,9">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="24" /><ColumnDefinition Width="15" /><ColumnDefinition Width="90" />
                         <ColumnDefinition Width="15" /><ColumnDefinition Width="1" /><ColumnDefinition Width="15" /><ColumnDefinition Width="*" />
@@ -327,7 +331,7 @@
             </Border>
 
             <Border Grid.Row="8" Style="{StaticResource CardStyle}">
-                <Grid Margin="10,10,15,10">
+                <Grid Margin="10,9,15,9">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="24" /><ColumnDefinition Width="15" /><ColumnDefinition Width="90" />
                         <ColumnDefinition Width="15" /><ColumnDefinition Width="1" /><ColumnDefinition Width="15" /><ColumnDefinition Width="*" />
@@ -344,7 +348,7 @@
                         <Grid.RowDefinitions><RowDefinition Height="21" /><RowDefinition Height="12" /><RowDefinition Height="29" /></Grid.RowDefinitions>
                         <Grid>
                             <TextBlock VerticalAlignment="Center" Style="{StaticResource SettingLabelStyle}" Text="Keyboard shortcut" />
-                            <Border Width="146.5" Height="21" HorizontalAlignment="Right" Background="#3B3B3B" BorderBrush="#545454" BorderThickness="0.5" CornerRadius="2" Padding="12,0">
+                            <Border Width="146.5" Height="21" HorizontalAlignment="Right" Background="#3B3B3B" BorderBrush="#545454" BorderThickness="1" CornerRadius="2" Padding="12,0">
                                 <TextBlock VerticalAlignment="Center" FontFamily="Segoe UI" FontSize="10" Foreground="#E6E6E6" Text="Win + Left Alt + Space" />
                             </Border>
                         </Grid>
@@ -360,7 +364,7 @@
             </Border>
 
             <Border Grid.Row="10" Style="{StaticResource CardStyle}">
-                <Grid Margin="10,10,15,10">
+                <Grid Margin="10,9,15,9">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="24" /><ColumnDefinition Width="15" /><ColumnDefinition Width="90" />
                         <ColumnDefinition Width="15" /><ColumnDefinition Width="1" /><ColumnDefinition Width="15" /><ColumnDefinition Width="*" />
