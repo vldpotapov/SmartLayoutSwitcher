@@ -2,6 +2,16 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.21-test.1] - 2026-09-17
+
+### Settings window
+- Rebuilt the settings window from the new Figma design as a compact 504 × 517 dark interface.
+- Added dedicated dark settings icons without changing the icons used by the Windows tray menu.
+- Preserved the existing settings, shortcuts, update status, GitHub action, and dynamic version display.
+
+### Local development
+- Added repository instructions and a guarded local OpenCode configuration for Qwen3 4B Instruct.
+
 ## [1.0.20] - 2026-09-17
 
 ### Settings window
