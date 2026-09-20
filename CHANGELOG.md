@@ -2,6 +2,11 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.23] - 2026-09-20
+
+### Tray icon
+- Fixed the update dot on the tray icon: it now renders as a full circle sticking out beyond the icon's corner, matching the Figma design, instead of being clipped by the bitmap edge.
+
 ## [1.0.22] - 2026-09-20
 
 ### Tray menu

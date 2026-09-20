@@ -26,9 +26,11 @@ internal static class TrayIconFactory
         using var canvas = new Bitmap(32, 32);
         using (var graphics = Graphics.FromImage(canvas))
         {
-            graphics.DrawIcon(source, new Rectangle(0, 0, 32, 32));
+            // The icon is inset so the notification dot can render fully, sticking
+            // out beyond the icon's corner without being clipped by the bitmap edge.
+            graphics.DrawIcon(source, new Rectangle(2, 2, 28, 28));
             using var dot = new SolidBrush(Color.FromArgb(0xFF, 0x6F, 0x00));
-            graphics.FillEllipse(dot, 22, 2, 8, 8);
+            graphics.FillEllipse(dot, 20, 0, 12, 12);
         }
 
         var handle = canvas.GetHicon();
