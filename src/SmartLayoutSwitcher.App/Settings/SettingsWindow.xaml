@@ -379,7 +379,7 @@
                     </StackPanel>
                     <Border Grid.Column="4" Background="#666666" />
                     <Grid Grid.Column="6">
-                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="15" /><ColumnDefinition Width="120" /></Grid.ColumnDefinitions>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="15" /><ColumnDefinition Width="140" /></Grid.ColumnDefinitions>
                         <StackPanel VerticalAlignment="Center">
                             <TextBlock Style="{StaticResource SettingPrimaryStyle}" Text="Smart Layout Switcher" />
                             <TextBlock x:Name="VersionText" Style="{StaticResource SectionDescriptionStyle}" />

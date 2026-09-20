@@ -111,7 +111,7 @@ public partial class SettingsWindow : Window
         if (update is not null)
         {
             CheckForUpdatesButton.Content = "Open download page";
-            UpdateStatusText.Text = $"Version {update.Version} is available.";
+            UpdateStatusText.Text = $"v {update.Version} is available";
             UpdateStatusIcon.Visibility = Visibility.Collapsed;
             return;
         }

@@ -2,6 +2,12 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.26] - 2026-09-21
+
+### Settings window
+- Widened the About section actions so update-related labels fit without clipping.
+- Shortened the available-update status to a compact version label.
+
 ## [1.0.25] - 2026-09-21
 
 ### Installer
