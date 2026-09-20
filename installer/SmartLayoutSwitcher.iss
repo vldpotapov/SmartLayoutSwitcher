@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.24"
+#define MyAppVersion "1.0.25"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
@@ -70,19 +70,12 @@ var
 
 procedure StopRunningApplication;
 var
-  AppPath: String;
   ResultCode: Integer;
 begin
-  AppPath := ExpandConstant('{app}\{#MyAppExeName}');
-  if not FileExists(AppPath) then
-    exit;
-
-  { Newer versions close cleanly through the named shutdown request. }
-  Exec(AppPath, '--shutdown', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
-  Sleep(750);
-
-  { Older test builds do not understand the shutdown request. The process has no
-    unsaved document state, so Setup can safely end only this application's process. }
+  { Do not launch the installed executable to request shutdown. A broken or
+    framework-dependent older build can show a hidden runtime dialog, causing
+    Setup to wait forever. The tray app has no unsaved document state, so ending
+    only its named process is safe and works even after a partial installation. }
   Exec(ExpandConstant('{sys}\taskkill.exe'),
     '/F /IM "{#MyAppExeName}"', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;

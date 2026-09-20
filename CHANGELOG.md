@@ -2,6 +2,12 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.25] - 2026-09-21
+
+### Installer
+- Fixed Setup hanging while replacing an older or partially installed build that could not start because its .NET runtime was unavailable.
+- Setup now terminates only the existing Smart Layout Switcher process directly instead of launching the old executable and waiting on a hidden runtime-error dialog.
+
 ## [1.0.24] - 2026-09-21
 
 ### Reliability
