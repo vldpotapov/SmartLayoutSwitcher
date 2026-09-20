@@ -1,0 +1,66 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Tray menu container: dark surface, 1px border, rounded corners, soft drop shadow. -->
+    <Style x:Key="TrayContextMenuStyle" TargetType="ContextMenu">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="#2C2C2C"
+                            BorderBrush="#454545"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Padding="2"
+                            SnapsToDevicePixels="True">
+                        <Border.Effect>
+                            <DropShadowEffect BlurRadius="8"
+                                              ShadowDepth="4"
+                                              Direction="270"
+                                              Color="#000000"
+                                              Opacity="0.25" />
+                        </Border.Effect>
+                        <ItemsPresenter />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Menu row: transparent by default, #3B3B3B on hover, 8px radius, 14/10/8/10 padding,
+         18px icon, 12px gap, 12px Segoe UI text in #E6E6E6. -->
+    <Style x:Key="TrayMenuItemStyle" TargetType="MenuItem">
+        <Setter Property="Foreground" Value="#E6E6E6" />
+        <Setter Property="FontFamily" Value="Segoe UI" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="Bg"
+                            Background="Transparent"
+                            CornerRadius="8"
+                            Padding="14,8,10,10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="12" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <ContentPresenter Grid.Column="0"
+                                              ContentSource="Icon"
+                                              VerticalAlignment="Center" />
+                            <ContentPresenter Grid.Column="2"
+                                              ContentSource="Header"
+                                              VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="Bg" Property="Background" Value="#3B3B3B" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+</ResourceDictionary>

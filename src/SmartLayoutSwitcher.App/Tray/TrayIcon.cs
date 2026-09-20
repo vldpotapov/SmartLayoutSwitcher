@@ -31,23 +31,25 @@ public sealed class TrayIcon : IDisposable
         _icon.Icon = _currentIcon;
         _icon.ToolTipText = CreateToolTipText(updateAvailable);
 
-        var menu = new ContextMenu();
+        var styles = new ResourceDictionary
+        {
+            Source = new Uri("pack://application:,,,/SmartLayoutSwitcher.App;component/Tray/TrayMenuStyles.xaml"),
+        };
 
-        var header = CreateItem("Smart Layout Switcher", CreateBrandIcon(), interactive: false);
-        (_current, _currentText, _pairText) = CreateStatusItem();
+        var menu = new ContextMenu { Style = (Style)styles["TrayContextMenuStyle"] };
 
-        var settings = CreateItem("Settings", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Settings/general.svg"));
+        var header = CreateItem("Smart Layout Switcher", CreateBrandIcon(), styles, interactive: false);
+        (_current, _currentText, _pairText) = CreateStatusItem(styles);
+
+        var settings = CreateItem("Settings", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Settings/general-dark.svg"), styles);
         settings.Click += (_, _) => SettingsRequested?.Invoke();
 
-        var exit = CreateItem("Quit", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Tray/quit.svg"));
+        var exit = CreateItem("Quit", CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Tray/quit-dark.svg"), styles);
         exit.Click += (_, _) => ExitRequested?.Invoke();
 
         menu.Items.Add(header);
-        menu.Items.Add(CreateSeparator());
         menu.Items.Add(_current);
-        menu.Items.Add(CreateSeparator());
         menu.Items.Add(settings);
-        menu.Items.Add(CreateSeparator());
         menu.Items.Add(exit);
 
         _icon.ContextMenu = menu;
@@ -90,15 +92,16 @@ public sealed class TrayIcon : IDisposable
             dispatcher.BeginInvoke(invoke);
     }
 
-    private static MenuItem CreateItem(object header, object icon, bool interactive = true) => new()
+    private static MenuItem CreateItem(object header, object icon, ResourceDictionary styles, bool interactive = true) => new()
     {
         Header = header,
         Icon = icon,
+        Style = (Style)styles["TrayMenuItemStyle"],
         IsHitTestVisible = interactive,
         Focusable = interactive,
     };
 
-    private static (MenuItem Item, TextBlock Current, TextBlock Pair) CreateStatusItem()
+    private static (MenuItem Item, TextBlock Current, TextBlock Pair) CreateStatusItem(ResourceDictionary styles)
     {
         var current = new TextBlock
         {
@@ -106,44 +109,30 @@ public sealed class TrayIcon : IDisposable
         };
         var pair = new TextBlock
         {
-            Margin = new Thickness(0, 2, 0, 0),
             Text = "Pair: —",
         };
         var header = new StackPanel { VerticalAlignment = VerticalAlignment.Center };
         header.Children.Add(current);
         header.Children.Add(pair);
 
-        var item = CreateItem(header, CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Settings/switch.svg"), interactive: false);
+        var item = CreateItem(header, CreateSvgIcon("/SmartLayoutSwitcher.App;component/Resources/Settings/switch-dark.svg"), styles, interactive: false);
         return (item, current, pair);
     }
 
-    private static Separator CreateSeparator() => new();
-
     private static Image CreateSvgIcon(string source) => new()
     {
-        Width = 16,
-        Height = 16,
+        Width = 18,
+        Height = 18,
         Source = SvgImageSource.Load(source),
     };
 
-    private static Border CreateBrandIcon()
+    private static Image CreateBrandIcon() => new()
     {
-        var image = new Image
-        {
-            Stretch = System.Windows.Media.Stretch.Uniform,
-            Source = new BitmapImage(new Uri("pack://application:,,,/SmartLayoutSwitcher.App;component/Resources/Lang-icon.png")),
-        };
-
-        return new Border
-        {
-            Width = 16,
-            Height = 16,
-            Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(0x11, 0x11, 0x11)),
-            CornerRadius = new System.Windows.CornerRadius(3),
-            Padding = new Thickness(2),
-            Child = image,
-        };
-    }
+        Width = 18,
+        Height = 18,
+        Stretch = System.Windows.Media.Stretch.Uniform,
+        Source = new BitmapImage(new Uri("pack://application:,,,/SmartLayoutSwitcher.App;component/Resources/Lang-icon.png")),
+    };
 
     private static string CreateToolTipText(bool updateAvailable) =>
         updateAvailable

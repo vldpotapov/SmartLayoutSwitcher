@@ -2,6 +2,14 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.22] - 2026-09-20
+
+### Tray menu
+- Redesigned the tray menu to match the Figma design: dark surface with rounded corners, a 1px border and a soft drop shadow.
+- Menu rows show a #3B3B3B hover state only on interactive items (Settings, Quit); the header and status rows stay inactive.
+- Replaced the standard Windows menu appearance with custom dark styling and removed the separators.
+- Switched the tray icons to the dark #999999 variants (switch, general, quit) at 18 × 18 px.
+
 ## [1.0.21] - 2026-09-18
 
 ### Settings window
