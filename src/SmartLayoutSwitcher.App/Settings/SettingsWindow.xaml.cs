@@ -137,9 +137,14 @@ public partial class SettingsWindow : Window
 
     private void Cancel_Click(object sender, RoutedEventArgs e) => Close();
 
-    private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    private void HeaderArea_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
     {
         if (e.LeftButton != MouseButtonState.Pressed)
+            return;
+
+        // The whole top strip, including the empty margins around the visual
+        // header, acts as a title bar. Content cards below remain interactive.
+        if (e.GetPosition(this).Y > 80)
             return;
 
         // Don't start a drag when the click lands on the close button.

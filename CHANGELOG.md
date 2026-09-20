@@ -2,6 +2,16 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.24] - 2026-09-21
+
+### Reliability
+- The layout pair is now saved and restored across restarts. On first launch, the first two layouts in the Windows input-language order are used automatically.
+- If a saved layout is no longer installed, the pair safely falls back to the first two available layouts instead of becoming unavailable.
+
+### Interface
+- The tray-menu shadow now has an unclipped transparent canvas, so it can render around the full menu rather than only near rounded corners.
+- The full top strip of the Settings window can now be dragged, including the empty space around the header.
+
 ## [1.0.23] - 2026-09-20
 
 ### Tray icon

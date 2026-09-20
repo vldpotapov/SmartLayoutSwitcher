@@ -27,6 +27,11 @@ public sealed class AppSettings
     public HotkeyMode Hotkey { get; set; } = HotkeyMode.WinSpace;
     public string GitHubProjectUrl { get; set; } = DefaultGitHubProjectUrl;
 
+    // The current two-layout switch pair. Values are normalized Windows KLIDs
+    // (for example, 00000409), not transient HKL handles.
+    public string? PrimaryLayoutId { get; set; }
+    public string? SecondaryLayoutId { get; set; }
+
     // Cached update state keeps normal launches offline and lets the tray show an
     // already-known update immediately.
     public DateTimeOffset? LastUpdateCheckUtc { get; set; }

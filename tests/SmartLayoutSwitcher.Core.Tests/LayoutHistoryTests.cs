@@ -156,4 +156,21 @@ public class LayoutHistoryTests
         h.ApplyInternalToggle();
         Assert.Equal(EN, h.Current);
     }
+
+    [Fact]
+    public void RestorePair_RetainsAnActiveLayoutOutsideThePair()
+    {
+        var h = new LayoutHistory();
+        h.RestorePair(EN, RU, CZ);
+
+        Assert.True(h.HasPair);
+        Assert.Equal(CZ, h.Current);
+        Assert.True(h.TryGetToggleTarget(out var target));
+        Assert.Equal(EN, target);
+
+        h.ApplyInternalToggle();
+        Assert.Equal(EN, h.Current);
+        Assert.Equal(EN, h.Primary);
+        Assert.Equal(RU, h.Secondary);
+    }
 }

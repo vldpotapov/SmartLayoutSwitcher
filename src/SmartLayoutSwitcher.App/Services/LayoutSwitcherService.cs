@@ -89,16 +89,20 @@ public sealed class LayoutSwitcherService : IDisposable
         var staleLayoutsRemoved = _layouts.UnloadRedundantBaseLayouts();
         if (staleLayoutsRemoved > 0)
             _log.Info($"Removed {staleLayoutsRemoved} redundant base keyboard layout(s).");
+        // The cleanup above can change the set of loaded handles. Keep the
+        // catalog used by QueryLayout and the initial-pair logic in sync.
+        RefreshCatalog();
         var current = _layouts.GetForegroundLayoutInfo();
         if (current is not null)
         {
-            _history.Initialize(current.Id);
+            EnsurePair(current.Id);
             _reportedLayout = current.Id;
             _log.Info($"Initial layout: {current.Id} {current.LanguageName}");
         }
         else
         {
             _log.Warn("Could not determine the initial foreground layout.");
+            EnsurePair(LayoutId.Empty);
         }
 
         _foreground.ForegroundChanged += OnForegroundChanged;
@@ -280,7 +284,8 @@ public sealed class LayoutSwitcherService : IDisposable
                 return;
             }
 
-            _history.ApplyUserSelection(current);
+            if (_history.ApplyUserSelection(current))
+                PersistPair();
             if (!_history.TryGetToggleTarget(out target) || !_layouts.TryGetLoadedLayoutHandle(target, out targetHkl))
             {
                 _log.Info("Selected-text conversion skipped: choose two layouts first.");
@@ -407,12 +412,11 @@ public sealed class LayoutSwitcherService : IDisposable
                 _longPressRaised = true;
                 _log.Info("Long press detected -> showing layout popup (hold LAlt, tap LShift to cycle, release LAlt to apply).");
                 RefreshCatalog();
+                EnsurePair(QueryLayout(CurrentHwnd()));
                 var current = _history.Current;
-                var paired = current == _history.Primary
-                    ? _history.Secondary
-                    : current == _history.Secondary
-                        ? _history.Primary
-                        : LayoutId.Empty;
+                var paired = _history.TryGetToggleTarget(out var toggleTarget)
+                    ? toggleTarget
+                    : LayoutId.Empty;
                 _reactor.EnterCycleMode();
                 _popup.Show(_installed, current, paired);
             }
@@ -451,6 +455,7 @@ public sealed class LayoutSwitcherService : IDisposable
 
     private void PerformShortPressToggle(long durationMs)
     {
+        EnsurePair(QueryLayout(CurrentHwnd()));
         if (!_history.TryGetToggleTarget(out var target))
         {
             _log.Info($"Short press ({durationMs} ms) but no switch pair available.");
@@ -496,6 +501,7 @@ public sealed class LayoutSwitcherService : IDisposable
             }
 
             _history.ApplyPopupSelection(chosen);
+            PersistPair();
             _memory.Remember(hwnd, chosen);
             BeginInternalSwitch(chosen);
             RaiseStatus();
@@ -570,7 +576,11 @@ public sealed class LayoutSwitcherService : IDisposable
 
             var hwnd = _foregroundHwnd != IntPtr.Zero ? _foregroundHwnd : NativeMethods.GetForegroundWindow();
             var layout = QueryLayout(hwnd);
-            if (layout.IsEmpty || layout == _reportedLayout)
+            if (layout.IsEmpty)
+                return;
+
+            EnsurePair(layout);
+            if (layout == _reportedLayout)
                 return;
 
             _reportedLayout = layout;
@@ -584,6 +594,8 @@ public sealed class LayoutSwitcherService : IDisposable
             else
             {
                 var reformed = _history.ApplyUserSelection(layout);
+                if (reformed)
+                    PersistPair();
                 _log.Info(reformed
                     ? $"User selected a new layout {layout}; pair reformed."
                     : $"Layout changed to {layout}.");
@@ -614,6 +626,90 @@ public sealed class LayoutSwitcherService : IDisposable
     }
 
     private void RefreshCatalog() => _installed = _layouts.GetInstalledLayouts();
+
+    /// <summary>
+    /// Restores the user's last valid pair. On a first run, or after the user
+    /// removes one of those layouts in Windows, the first two layouts in the
+    /// Windows input-language order become the new pair.
+    /// </summary>
+    private bool EnsurePair(LayoutId current)
+    {
+        if (_history.HasPair)
+            return true;
+
+        var installed = _installed
+            .Select(layout => layout.Id)
+            .Where(layout => !layout.IsEmpty)
+            .Distinct()
+            .ToArray();
+
+        if (TryGetSavedPair(installed, out var savedPrimary, out var savedSecondary))
+        {
+            _history.RestorePair(savedPrimary, savedSecondary, current);
+            _log.Info($"Restored saved layout pair: {savedPrimary} <-> {savedSecondary}.");
+            return true;
+        }
+
+        if (installed.Length >= 2)
+        {
+            _history.RestorePair(installed[0], installed[1], current);
+            PersistPair();
+            _log.Info($"Initialized layout pair from Windows order: {installed[0]} <-> {installed[1]}.");
+            return true;
+        }
+
+        if (!current.IsEmpty && _history.Primary != current)
+            _history.Initialize(current);
+
+        if (_history.Primary.IsEmpty)
+            _log.Warn("A layout pair is unavailable because Windows has fewer than two installed layouts.");
+        return false;
+    }
+
+    private bool TryGetSavedPair(
+        IReadOnlyCollection<LayoutId> installed,
+        out LayoutId primary,
+        out LayoutId secondary)
+    {
+        primary = LayoutId.Empty;
+        secondary = LayoutId.Empty;
+
+        if (!TryNormalizeLayoutId(_settings.PrimaryLayoutId, out primary) ||
+            !TryNormalizeLayoutId(_settings.SecondaryLayoutId, out secondary) ||
+            primary == secondary ||
+            !installed.Contains(primary) ||
+            !installed.Contains(secondary))
+        {
+            primary = LayoutId.Empty;
+            secondary = LayoutId.Empty;
+            return false;
+        }
+
+        return true;
+    }
+
+    private static bool TryNormalizeLayoutId(string? value, out LayoutId layout)
+    {
+        layout = LayoutId.Empty;
+        if (!KeyboardLayoutService.IsValidLayoutId(value ?? string.Empty) ||
+            !uint.TryParse(value, System.Globalization.NumberStyles.HexNumber, null, out var parsed))
+        {
+            return false;
+        }
+
+        layout = new LayoutId(parsed.ToString("X8"));
+        return true;
+    }
+
+    private void PersistPair()
+    {
+        if (!_history.HasPair)
+            return;
+
+        _settings.PrimaryLayoutId = _history.Primary.Id;
+        _settings.SecondaryLayoutId = _history.Secondary.Id;
+        _settings.Save();
+    }
 
     private void BeginInternalSwitch(LayoutId target)
     {

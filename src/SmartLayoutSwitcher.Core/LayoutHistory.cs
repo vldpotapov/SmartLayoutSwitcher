@@ -42,6 +42,21 @@ public sealed class LayoutHistory
     }
 
     /// <summary>
+    /// Restores a pair while retaining the layout Windows reports as active.
+    /// The active layout may temporarily be outside the pair (for example, when
+    /// a window remembers a third layout). The next toggle then moves to the
+    /// primary member of the restored pair.
+    /// </summary>
+    public void RestorePair(LayoutId first, LayoutId second, LayoutId current)
+    {
+        ArgumentNullException.ThrowIfNull(current);
+
+        RestorePair(first, second);
+        if (!current.IsEmpty)
+            Current = current;
+    }
+
+    /// <summary>
     /// Reports a layout that is really active (chosen by the user, not by our hotkey).
     /// Returns true when the stored pair changed.
     /// </summary>
