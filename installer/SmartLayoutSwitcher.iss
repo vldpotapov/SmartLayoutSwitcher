@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.26"
+#define MyAppVersion "1.0.27"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
@@ -32,7 +32,6 @@ RestartApplications=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
-Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 
 [Tasks]
 Name: "autostart"; Description: "Start Smart Layout Switcher with Windows"
@@ -44,14 +43,9 @@ english.HotkeyPageDescription=Choose the shortcut for switching layouts
 english.HotkeyPageInstructions=You can change this later in Settings.
 english.WinSpaceHotkey=Win + Space (recommended)
 english.AltShiftHotkey=Left Alt + Left Shift
-russian.HotkeyPageCaption=Сочетание клавиш
-russian.HotkeyPageDescription=Выберите сочетание для переключения раскладок
-russian.HotkeyPageInstructions=Его можно изменить позже в настройках приложения.
-russian.WinSpaceHotkey=Win + Space (рекомендуется)
-russian.AltShiftHotkey=Левый Alt + Левый Shift
 
 [Files]
-Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb"
+Source: "..\artifacts\publish\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "*.pdb,*.resources.dll"
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
@@ -96,6 +90,10 @@ begin
   HotkeyPage.Add(ExpandConstant('{cm:WinSpaceHotkey}'));
   HotkeyPage.Add(ExpandConstant('{cm:AltShiftHotkey}'));
   HotkeyPage.SelectedValueIndex := 0;
+
+  { Keep the launch checkbox aligned with the finished-page body text. Using
+    the label position also follows Inno Setup's DPI-scaled page geometry. }
+  WizardForm.RunList.Left := WizardForm.FinishedLabel.Left;
 end;
 
 function GetSelectedHotkey(Param: String): String;

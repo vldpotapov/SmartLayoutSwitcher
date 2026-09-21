@@ -2,6 +2,13 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.27] - 2026-09-21
+
+### Installer
+- Fixed the launch checkbox on the final wizard page being clipped on the left edge; it now aligns with the page body text at every DPI scaling.
+- Removed the Russian language; the installer is English-only.
+- Reduced the installer size to about 53 MB by excluding debug symbols and satellite resource assemblies.
+
 ## [1.0.26] - 2026-09-21
 
 ### Settings window
