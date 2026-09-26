@@ -1,3 +1,4 @@
+using Microsoft.Win32;
 using SmartLayoutSwitcher.App.Diagnostics;
 using SmartLayoutSwitcher.App.Popup;
 using SmartLayoutSwitcher.App.Settings;
@@ -16,6 +17,8 @@ public sealed record SwitcherStatus(string CurrentCode, string PairText, bool En
 /// </summary>
 public sealed class LayoutSwitcherService : IDisposable
 {
+    private const long StaleShortcutTimeoutMs = 2000;
+
     private readonly AppSettings _settings;
     private readonly Logger _log;
     private readonly KeyboardLayoutService _layouts = new();
@@ -43,6 +46,7 @@ public sealed class LayoutSwitcherService : IDisposable
     // otherwise an ordinary Alt opens the app menu and an ordinary Win opens Start.
     private bool _maskPrimaryRelease;
     private bool _primaryDownPassedThrough;
+    private long _lastShortcutEventMs;
 
     // Win + Left Alt + Space is intentionally handled separately from the
     // layout-switching reactor: it must take precedence over Win + Space.
@@ -113,6 +117,9 @@ public sealed class LayoutSwitcherService : IDisposable
         _hook.Install();
         _log.Info($"Keyboard hook installed: {_hook.IsInstalled}");
 
+        SystemEvents.SessionSwitch += OnSessionSwitch;
+        SystemEvents.PowerModeChanged += OnPowerModeChanged;
+
         _pollTimer = new System.Threading.Timer(_ => OnPoll(), null, 300, 300);
     }
 
@@ -142,6 +149,13 @@ public sealed class LayoutSwitcherService : IDisposable
         var isSecondary = usesWinSpace
             ? args.VkCode == NativeMethods.VK_SPACE
             : args.VkCode == NativeMethods.VK_LSHIFT;
+
+        var timeSinceLastShortcutEvent = now - _lastShortcutEventMs;
+        if (isPrimary || isSecondary)
+            _lastShortcutEventMs = now;
+
+        RecoverStaleShortcutState(
+            args, usesWinSpace, isPrimary, isSecondary, timeSinceLastShortcutEvent);
 
         KeyReaction reaction;
         if (isPrimary)
@@ -173,6 +187,29 @@ public sealed class LayoutSwitcherService : IDisposable
             _log.Debug($"Right modifier 0x{args.VkCode:X2} passed through.");
 
         return reaction;
+    }
+
+    private void RecoverStaleShortcutState(
+        HookKeyEventArgs args,
+        bool usesWinSpace,
+        bool isPrimary,
+        bool isSecondary,
+        long timeSinceLastShortcutEvent)
+    {
+        if (args.IsKeyUp || (!isPrimary && !isSecondary) || _popup.IsOpen ||
+            !_reactor.HasPendingState || timeSinceLastShortcutEvent < StaleShortcutTimeoutMs)
+            return;
+
+        // At a fresh key-down, the other shortcut key must be physically down
+        // only when this is still the same combo. If it is up while the reactor
+        // still has pending state, Windows dropped a key-up (commonly across
+        // lock/sleep), so recover before processing this new first key.
+        var otherKeyDown = usesWinSpace
+            ? isPrimary ? NativeMethods.IsSpaceDown() : NativeMethods.IsWinDown()
+            : isPrimary ? NativeMethods.IsLeftShiftDown() : NativeMethods.IsLeftAltDown();
+
+        if (!otherKeyDown)
+            ResetShortcutState("stale key state detected");
     }
 
     private bool TryHandleSelectedTextConversionShortcut(HookKeyEventArgs args, out KeyReaction reaction)
@@ -526,6 +563,35 @@ public sealed class LayoutSwitcherService : IDisposable
         _popup.Hide();
     }
 
+    private void OnSessionSwitch(object sender, SessionSwitchEventArgs e) =>
+        Prepare(() => ResetShortcutState($"session {e.Reason}"));
+
+    private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
+    {
+        if (e.Mode == PowerModes.Resume)
+            Prepare(() => ResetShortcutState("system resume"));
+    }
+
+    private void ResetShortcutState(string reason)
+    {
+        lock (_gate)
+        {
+            if (_disposed)
+                return;
+
+            _reactor.Reset();
+            StopLongPressTimer();
+            _longPressRaised = false;
+            _maskPrimaryRelease = false;
+            _primaryDownPassedThrough = false;
+
+            if (_popup.IsOpen)
+                _popup.Hide();
+
+            _log.Info($"Shortcut state reset: {reason}.");
+        }
+    }
+
     // ------------------------------------------------------------- foreground / poll
 
     private void OnForegroundChanged(IntPtr hwnd)
@@ -768,6 +834,8 @@ public sealed class LayoutSwitcherService : IDisposable
                 return;
             _disposed = true;
 
+            SystemEvents.SessionSwitch -= OnSessionSwitch;
+            SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             StopLongPressTimer();
             _pollTimer?.Dispose();
             _hook.Dispose();

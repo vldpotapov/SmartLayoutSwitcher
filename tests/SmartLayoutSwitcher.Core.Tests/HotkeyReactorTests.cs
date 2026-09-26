@@ -139,6 +139,25 @@ public class HotkeyReactorTests
     }
 
     [Fact]
+    public void LostFinalKeyUp_LeavesPendingState_UntilHostResetsIt()
+    {
+        var (r, events) = Create();
+
+        r.PrimaryDown(0);
+        r.SecondaryDown(10);
+        r.SecondaryUp(20); // Primary-up is lost across a session transition.
+
+        Assert.True(r.HasPendingState);
+
+        r.Reset();
+
+        Assert.False(r.HasPendingState);
+        Assert.Equal(KeyReaction.PassThrough, r.PrimaryDown(100));
+        Assert.Equal(KeyReaction.Suppress, r.SecondaryDown(110));
+        Assert.Equal(2, events.Count(e => e.name == "engaged"));
+    }
+
+    [Fact]
     public void OtherKeys_AlwaysPassThrough()
     {
         var (r, events) = Create();

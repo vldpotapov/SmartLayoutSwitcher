@@ -2,6 +2,12 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.28-test.1] - 2026-09-26
+
+### Hotkey reliability
+- Reset unfinished shortcut state after Windows session changes and system resume.
+- Recover automatically when a lost key-up would otherwise consume the next shortcut press.
+
 ## [1.0.27] - 2026-09-21
 
 ### Installer

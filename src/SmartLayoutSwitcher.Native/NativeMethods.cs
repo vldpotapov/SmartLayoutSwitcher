@@ -100,6 +100,10 @@ public static class NativeMethods
 
     public static bool IsLeftAltDown() => (GetAsyncKeyState(VK_LMENU) & 0x8000) != 0;
 
+    public static bool IsLeftShiftDown() => (GetAsyncKeyState(VK_LSHIFT) & 0x8000) != 0;
+
+    public static bool IsSpaceDown() => (GetAsyncKeyState(VK_SPACE) & 0x8000) != 0;
+
     public static bool IsShiftDown() =>
         (GetAsyncKeyState(VK_LSHIFT) & 0x8000) != 0 ||
         (GetAsyncKeyState(VK_RSHIFT) & 0x8000) != 0;

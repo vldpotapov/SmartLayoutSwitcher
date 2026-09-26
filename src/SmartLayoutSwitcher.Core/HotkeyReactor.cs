@@ -31,6 +31,13 @@ public sealed class HotkeyReactor
 
     public bool IsEngaged => _engaged;
 
+    /// <summary>
+    /// True while a shortcut is engaged or while the reactor is waiting for the
+    /// last physical key-up. The host uses this to recover when Windows drops a
+    /// key-up across a lock, sleep, or session transition.
+    /// </summary>
+    public bool HasPendingState => _engaged || _waitingForRelease;
+
     /// <summary>Fired exactly once on the key-down that completes the combo.</summary>
     public event Action<long>? ComboEngaged;
 
