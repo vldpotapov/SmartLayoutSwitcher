@@ -2,11 +2,16 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
-## [1.0.28-test.1] - 2026-09-26
+## [1.0.28] - 2026-10-02
 
 ### Hotkey reliability
 - Reset unfinished shortcut state after Windows session changes and system resume.
 - Recover automatically when a lost key-up would otherwise consume the next shortcut press.
+- Synchronize the active foreground window and its real keyboard layout before every toggle, preventing the first shortcut after inactivity from targeting an already-active layout.
+- Ignore delayed foreground-window events and confirm internal switches even when the reported layout has not changed.
+
+### Diagnostics
+- Added privacy-safe, bounded diagnostic logging for hotkey state, foreground layouts, session transitions and switch confirmation without recording typed text or clipboard contents.
 
 ## [1.0.27] - 2026-09-21
 

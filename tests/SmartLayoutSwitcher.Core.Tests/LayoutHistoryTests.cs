@@ -115,6 +115,19 @@ public class LayoutHistoryTests
     }
 
     [Fact]
+    public void InternalSelection_UpdatesCurrentWithoutReformingPair()
+    {
+        var h = new LayoutHistory();
+        h.RestorePair(EN, RU, EN);
+
+        h.ApplyInternalSelection(CZ);
+
+        Assert.Equal(CZ, h.Current);
+        Assert.Equal(EN, h.Primary);
+        Assert.Equal(RU, h.Secondary);
+    }
+
+    [Fact]
     public void ManualSwitchWithinPair_KeepsPairComposition()
     {
         var h = new LayoutHistory();

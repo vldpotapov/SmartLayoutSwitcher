@@ -145,4 +145,16 @@ public sealed class LayoutHistory
 
         Current = target;
     }
+
+    /// <summary>
+    /// Records a layout selected by an application-owned operation, such as
+    /// restoring a remembered per-window layout. Unlike a user selection, this
+    /// does not change the composition of the user's switch pair.
+    /// </summary>
+    public void ApplyInternalSelection(LayoutId selected)
+    {
+        ArgumentNullException.ThrowIfNull(selected);
+        if (!selected.IsEmpty)
+            Current = selected;
+    }
 }

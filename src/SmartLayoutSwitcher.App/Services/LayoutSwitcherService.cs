@@ -4,6 +4,8 @@ using SmartLayoutSwitcher.App.Popup;
 using SmartLayoutSwitcher.App.Settings;
 using SmartLayoutSwitcher.Core;
 using SmartLayoutSwitcher.Native;
+using System.Diagnostics;
+using System.Windows.Threading;
 
 namespace SmartLayoutSwitcher.App.Services;
 
@@ -32,6 +34,7 @@ public sealed class LayoutSwitcherService : IDisposable
     private readonly SelectedTextConversionService _selectedTextConverter = new();
     private readonly object _gate = new();
     private readonly System.Threading.Timer _pollTimer;
+    private readonly DispatcherTimer _diagnosticTimer;
 
     private IReadOnlyList<LayoutInfo> _installed = Array.Empty<LayoutInfo>();
 
@@ -47,6 +50,7 @@ public sealed class LayoutSwitcherService : IDisposable
     private bool _maskPrimaryRelease;
     private bool _primaryDownPassedThrough;
     private long _lastShortcutEventMs;
+    private long _diagnosticEventSequence;
 
     // Win + Left Alt + Space is intentionally handled separately from the
     // layout-switching reactor: it must take precedence over Win + Space.
@@ -116,11 +120,20 @@ public sealed class LayoutSwitcherService : IDisposable
         _hook.KeyEvent += OnKey;
         _hook.Install();
         _log.Info($"Keyboard hook installed: {_hook.IsInstalled}");
+        _log.Diagnostic($"Hook installation: installed={_hook.IsInstalled}, installThread={_hook.InstallThreadId}.");
 
         SystemEvents.SessionSwitch += OnSessionSwitch;
         SystemEvents.PowerModeChanged += OnPowerModeChanged;
 
         _pollTimer = new System.Threading.Timer(_ => OnPoll(), null, 300, 300);
+
+        _diagnosticTimer = new DispatcherTimer(DispatcherPriority.Background)
+        {
+            Interval = TimeSpan.FromMinutes(1),
+        };
+        _diagnosticTimer.Tick += OnDiagnosticHeartbeat;
+        _diagnosticTimer.Start();
+        WriteDiagnosticSnapshot("service-ready");
     }
 
     public void PublishStatus() => RaiseStatus();
@@ -133,14 +146,6 @@ public sealed class LayoutSwitcherService : IDisposable
         if (args.IsInjected)
             return KeyReaction.PassThrough;
 
-        // Disabled means fully transparent to normal typing and the user's own
-        // Windows language shortcut.
-        if (!_settings.Enabled && !_popup.IsOpen)
-            return KeyReaction.PassThrough;
-
-        if (TryHandleSelectedTextConversionShortcut(args, out var textConversionReaction))
-            return textConversionReaction;
-
         var now = Environment.TickCount64;
         var usesWinSpace = _settings.Hotkey == HotkeyMode.WinSpace;
         var isPrimary = usesWinSpace
@@ -149,6 +154,29 @@ public sealed class LayoutSwitcherService : IDisposable
         var isSecondary = usesWinSpace
             ? args.VkCode == NativeMethods.VK_SPACE
             : args.VkCode == NativeMethods.VK_LSHIFT;
+        var shouldDiagnose = ShouldDiagnoseHotkeyEvent(usesWinSpace, isPrimary, isSecondary);
+        var diagnosticId = shouldDiagnose ? ++_diagnosticEventSequence : 0;
+        var diagnosticStarted = shouldDiagnose ? Stopwatch.GetTimestamp() : 0;
+        if (shouldDiagnose)
+            LogHotkeyEvent(diagnosticId, "input", args, KeyReaction.PassThrough, now);
+
+        // Disabled means fully transparent to normal typing and the user's own
+        // Windows language shortcut.
+        if (!_settings.Enabled && !_popup.IsOpen)
+        {
+            if (shouldDiagnose)
+                LogHotkeyEvent(diagnosticId, "disabled-pass", args, KeyReaction.PassThrough, now,
+                    ElapsedMicroseconds(diagnosticStarted));
+            return KeyReaction.PassThrough;
+        }
+
+        if (TryHandleSelectedTextConversionShortcut(args, out var textConversionReaction))
+        {
+            if (shouldDiagnose)
+                LogHotkeyEvent(diagnosticId, "text-conversion", args, textConversionReaction, now,
+                    ElapsedMicroseconds(diagnosticStarted));
+            return textConversionReaction;
+        }
 
         var timeSinceLastShortcutEvent = now - _lastShortcutEventMs;
         if (isPrimary || isSecondary)
@@ -186,8 +214,59 @@ public sealed class LayoutSwitcherService : IDisposable
         if (IsPhysicalRightAlt(args) || args.VkCode == NativeMethods.VK_RSHIFT)
             _log.Debug($"Right modifier 0x{args.VkCode:X2} passed through.");
 
+        if (shouldDiagnose)
+            LogHotkeyEvent(diagnosticId, "result", args, reaction, now,
+                ElapsedMicroseconds(diagnosticStarted));
+
         return reaction;
     }
+
+    private bool ShouldDiagnoseHotkeyEvent(bool usesWinSpace, bool isPrimary, bool isSecondary)
+    {
+        if (isPrimary)
+            return true;
+        if (!isSecondary)
+            return false;
+
+        return _reactor.HasPendingState ||
+               (usesWinSpace ? NativeMethods.IsWinDown() : NativeMethods.IsLeftAltDown());
+    }
+
+    private void LogHotkeyEvent(
+        long id,
+        string phase,
+        HookKeyEventArgs args,
+        KeyReaction reaction,
+        long now,
+        long processingUs = -1)
+    {
+        var hwnd = CurrentHwnd();
+        var layout = QueryLayout(hwnd);
+        var engagedAge = _reactor.EngagedSinceMs is long engagedAt ? now - engagedAt : -1;
+        _log.Diagnostic(
+            $"Hotkey#{id} {phase}: mode={_settings.Hotkey}, key={DiagnosticKeyName(args.VkCode)}, " +
+            $"event={(args.IsKeyUp ? "up" : "down")}, sys={args.IsSysKey}, ext={args.IsExtended}, " +
+            $"reaction={reaction}, processingUs={processingUs}, enabled={_settings.Enabled}, hook={_hook.IsInstalled}, " +
+            $"reactor[pending={_reactor.HasPendingState},engaged={_reactor.IsEngaged},ageMs={engagedAge}], " +
+            $"physical[win={NativeMethods.IsWinDown()},space={NativeMethods.IsSpaceDown()}," +
+            $"leftAlt={NativeMethods.IsLeftAltDown()},leftShift={NativeMethods.IsLeftShiftDown()}], " +
+            $"popup={_popup.IsOpen}, mask={_maskPrimaryRelease}, foreground=0x{hwnd.ToInt64():X}, layout={layout}.");
+    }
+
+    private static long ElapsedMicroseconds(long startedTimestamp) =>
+        (long)(Stopwatch.GetElapsedTime(startedTimestamp).TotalMilliseconds * 1000);
+
+    private static string DiagnosticKeyName(int vkCode) => vkCode switch
+    {
+        NativeMethods.VK_LWIN => "LWin",
+        NativeMethods.VK_RWIN => "RWin",
+        NativeMethods.VK_SPACE => "Space",
+        NativeMethods.VK_LMENU or NativeMethods.VK_MENU => "LAlt",
+        NativeMethods.VK_RMENU => "RAlt",
+        NativeMethods.VK_LSHIFT => "LShift",
+        NativeMethods.VK_RSHIFT => "RShift",
+        _ => $"0x{vkCode:X2}",
+    };
 
     private void RecoverStaleShortcutState(
         HookKeyEventArgs args,
@@ -415,7 +494,7 @@ public sealed class LayoutSwitcherService : IDisposable
             if (_disposed || _popup.IsOpen)
                 return;
 
-            _log.Debug("Layout shortcut engaged.");
+            _log.Diagnostic("Layout shortcut engaged.");
             _maskPrimaryRelease = true;
             // Send the mask while the primary Alt/Win key is still physically
             // down. Sending it only at key-up is too late for some Windows 11
@@ -468,6 +547,7 @@ public sealed class LayoutSwitcherService : IDisposable
                 return;
 
             StopLongPressTimer();
+            _log.Diagnostic($"Layout shortcut released after {durationMs} ms; longPress={_longPressRaised}, popup={_popup.IsOpen}.");
 
             if (_longPressRaised || _popup.IsOpen)
             {
@@ -492,16 +572,22 @@ public sealed class LayoutSwitcherService : IDisposable
 
     private void PerformShortPressToggle(long durationMs)
     {
-        EnsurePair(QueryLayout(CurrentHwnd()));
+        var hwnd = CurrentHwnd();
+        if (hwnd == IntPtr.Zero)
+        {
+            _log.Warn("Short press could not switch: no foreground window.");
+            return;
+        }
+
+        var actual = QueryLayout(hwnd);
+        EnsurePair(actual);
+        SynchronizeBeforeToggle(hwnd, actual);
+
         if (!_history.TryGetToggleTarget(out var target))
         {
             _log.Info($"Short press ({durationMs} ms) but no switch pair available.");
             return;
         }
-
-        var hwnd = CurrentHwnd();
-        if (hwnd == IntPtr.Zero)
-            return;
 
         _log.Info($"Short press ({durationMs} ms): switching {_history.Current} -> {target}");
         if (!_layouts.SwitchTo(hwnd, target))
@@ -563,11 +649,15 @@ public sealed class LayoutSwitcherService : IDisposable
         _popup.Hide();
     }
 
-    private void OnSessionSwitch(object sender, SessionSwitchEventArgs e) =>
+    private void OnSessionSwitch(object sender, SessionSwitchEventArgs e)
+    {
+        _log.Diagnostic($"Session event: {e.Reason}.");
         Prepare(() => ResetShortcutState($"session {e.Reason}"));
+    }
 
     private void OnPowerModeChanged(object sender, PowerModeChangedEventArgs e)
     {
+        _log.Diagnostic($"Power event: {e.Mode}.");
         if (e.Mode == PowerModes.Resume)
             Prepare(() => ResetShortcutState("system resume"));
     }
@@ -600,6 +690,17 @@ public sealed class LayoutSwitcherService : IDisposable
         {
             if (_disposed)
                 return;
+
+            // WinEvent callbacks are delivered out of process and can arrive
+            // after another window has already taken focus. Never replace the
+            // cached foreground with such a stale HWND.
+            var actualForeground = CurrentHwnd();
+            if (actualForeground != IntPtr.Zero && hwnd != actualForeground)
+            {
+                _log.Diagnostic($"Stale foreground event ignored: event=0x{hwnd.ToInt64():X}, " +
+                                $"actual=0x{actualForeground.ToInt64():X}.");
+                hwnd = actualForeground;
+            }
 
             if (hwnd == _foregroundHwnd)
                 return;
@@ -637,27 +738,42 @@ public sealed class LayoutSwitcherService : IDisposable
                 return;
 
             var now = Environment.TickCount64;
-            if (_isInternalSwitch && now > _internalDeadline)
-                _isInternalSwitch = false;
-
-            var hwnd = _foregroundHwnd != IntPtr.Zero ? _foregroundHwnd : NativeMethods.GetForegroundWindow();
+            var hwnd = CurrentHwnd();
+            if (hwnd == IntPtr.Zero)
+                hwnd = _foregroundHwnd;
             var layout = QueryLayout(hwnd);
             if (layout.IsEmpty)
                 return;
 
             EnsurePair(layout);
-            if (layout == _reportedLayout)
-                return;
 
-            _reportedLayout = layout;
-
-            if (_isInternalSwitch && layout == _internalTarget)
+            var completedInternalSwitch = _isInternalSwitch && layout == _internalTarget;
+            if (completedInternalSwitch)
             {
                 _isInternalSwitch = false;
                 _memory.Remember(hwnd, layout);
                 _log.Debug($"Internal switch completed -> {layout}");
             }
-            else
+            else if (_isInternalSwitch && now > _internalDeadline)
+            {
+                _log.Warn($"Layout switch confirmation timed out: target={_internalTarget}, " +
+                          $"reported={_reportedLayout}, actual={layout}, foreground=0x{hwnd.ToInt64():X}.");
+                _isInternalSwitch = false;
+            }
+            else if (_isInternalSwitch)
+            {
+                return;
+            }
+
+            var reportedChanged = layout != _reportedLayout;
+            var historyChanged = layout != _history.Current;
+            _reportedLayout = layout;
+
+            if (completedInternalSwitch && historyChanged)
+            {
+                _history.ApplyInternalSelection(layout);
+            }
+            else if (historyChanged)
             {
                 var reformed = _history.ApplyUserSelection(layout);
                 if (reformed)
@@ -669,7 +785,8 @@ public sealed class LayoutSwitcherService : IDisposable
                     _memory.Remember(hwnd, layout);
             }
 
-            RaiseStatus();
+            if (reportedChanged || historyChanged || completedInternalSwitch)
+                RaiseStatus();
         }
     }
 
@@ -782,6 +899,65 @@ public sealed class LayoutSwitcherService : IDisposable
         _isInternalSwitch = true;
         _internalTarget = target;
         _internalDeadline = Environment.TickCount64 + 1500;
+        _log.Diagnostic($"Waiting for layout switch confirmation: target={target}.");
+    }
+
+    private void SynchronizeBeforeToggle(IntPtr hwnd, LayoutId actual)
+    {
+        if (actual.IsEmpty)
+            return;
+
+        var confirmedPendingSwitch = _isInternalSwitch && actual == _internalTarget;
+        if (_isInternalSwitch)
+        {
+            _log.Diagnostic(confirmedPendingSwitch
+                ? $"Pending switch confirmed before next hotkey -> {actual}."
+                : $"Pending switch superseded before next hotkey: target={_internalTarget}, actual={actual}.");
+            _isInternalSwitch = false;
+        }
+
+        if (_history.Current != actual)
+        {
+            var previous = _history.Current;
+            var reformed = false;
+            if (confirmedPendingSwitch)
+                _history.ApplyInternalSelection(actual);
+            else
+                reformed = _history.ApplyUserSelection(actual);
+            if (reformed)
+                PersistPair();
+            _log.Info($"Synchronized active layout before toggle: {previous} -> {actual}" +
+                      (reformed ? "; pair reformed." : "."));
+        }
+
+        _reportedLayout = actual;
+        _memory.Remember(hwnd, actual);
+    }
+
+    private void OnDiagnosticHeartbeat(object? sender, EventArgs e) =>
+        WriteDiagnosticSnapshot("heartbeat");
+
+    private void WriteDiagnosticSnapshot(string reason)
+    {
+        lock (_gate)
+        {
+            if (_disposed)
+                return;
+
+            var now = Environment.TickCount64;
+            var lastHookEvent = _hook.LastEventTickMs;
+            var hookIdleMs = lastHookEvent == 0 ? -1 : Math.Max(0, now - lastHookEvent);
+            var hwnd = CurrentHwnd();
+            _log.Diagnostic(
+                $"Snapshot ({reason}): hook[installed={_hook.IsInstalled},events={_hook.EventCount}," +
+                $"idleMs={hookIdleMs},installThread={_hook.InstallThreadId},callbackThread={_hook.CallbackThreadId}], " +
+                $"hotkey={_settings.Hotkey}, enabled={_settings.Enabled}, " +
+                $"reactor[pending={_reactor.HasPendingState},engaged={_reactor.IsEngaged}], " +
+                $"physical[win={NativeMethods.IsWinDown()},space={NativeMethods.IsSpaceDown()}," +
+                $"leftAlt={NativeMethods.IsLeftAltDown()},leftShift={NativeMethods.IsLeftShiftDown()}], " +
+                $"pair={_history.Primary}<->{_history.Secondary}, current={_history.Current}, " +
+                $"foreground=0x{hwnd.ToInt64():X}, layout={QueryLayout(hwnd)}, internalSwitch={_isInternalSwitch}.");
+        }
     }
 
     private void StopLongPressTimer()
@@ -837,6 +1013,7 @@ public sealed class LayoutSwitcherService : IDisposable
             SystemEvents.SessionSwitch -= OnSessionSwitch;
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             StopLongPressTimer();
+            _diagnosticTimer.Stop();
             _pollTimer?.Dispose();
             _hook.Dispose();
             _foreground.Dispose();

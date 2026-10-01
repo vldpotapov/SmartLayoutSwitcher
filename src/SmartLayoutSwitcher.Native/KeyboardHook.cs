@@ -28,6 +28,10 @@ public sealed class KeyboardHook : IDisposable
 {
     private readonly NativeMethods.LowLevelKeyboardProc _callback;
     private IntPtr _hookId;
+    private long _eventCount;
+    private long _lastEventTickMs;
+    private int _installThreadId;
+    private int _callbackThreadId;
 
     public KeyboardHook()
     {
@@ -38,6 +42,10 @@ public sealed class KeyboardHook : IDisposable
     public event KeyHookHandler? KeyEvent;
 
     public bool IsInstalled => _hookId != IntPtr.Zero;
+    public long EventCount => Interlocked.Read(ref _eventCount);
+    public long LastEventTickMs => Interlocked.Read(ref _lastEventTickMs);
+    public int InstallThreadId => Volatile.Read(ref _installThreadId);
+    public int CallbackThreadId => Volatile.Read(ref _callbackThreadId);
 
     public bool Install()
     {
@@ -46,6 +54,8 @@ public sealed class KeyboardHook : IDisposable
 
         var hMod = NativeMethods.GetModuleHandle(null);
         _hookId = NativeMethods.SetWindowsHookEx(NativeMethods.WH_KEYBOARD_LL, _callback, hMod, 0);
+        if (_hookId != IntPtr.Zero)
+            Volatile.Write(ref _installThreadId, Environment.CurrentManagedThreadId);
         return _hookId != IntPtr.Zero;
     }
 
@@ -62,6 +72,10 @@ public sealed class KeyboardHook : IDisposable
     {
         if (nCode >= 0)
         {
+            Interlocked.Increment(ref _eventCount);
+            Interlocked.Exchange(ref _lastEventTickMs, Environment.TickCount64);
+            Volatile.Write(ref _callbackThreadId, Environment.CurrentManagedThreadId);
+
             var data = Marshal.PtrToStructure<NativeMethods.KBDLLHOOKSTRUCT>(lParam);
             var msg = (uint)wParam.ToInt64();
             var args = new HookKeyEventArgs(

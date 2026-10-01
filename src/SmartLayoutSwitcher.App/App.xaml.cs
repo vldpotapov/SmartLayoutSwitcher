@@ -59,7 +59,15 @@ public partial class App : Application
 
         var logPath = Path.Combine(AppSettings.DirectoryPath, "smart-layout-switcher.log");
         _log = new Logger(_settings.DebugLogEnabled, logPath);
-        _log.Info("=== Smart Layout Switcher starting ===");
+        var version = typeof(App).Assembly
+            .GetCustomAttributes(typeof(System.Reflection.AssemblyInformationalVersionAttribute), inherit: false)
+            .OfType<System.Reflection.AssemblyInformationalVersionAttribute>()
+            .FirstOrDefault()?.InformationalVersion
+            ?? typeof(App).Assembly.GetName().Version?.ToString()
+            ?? "unknown";
+        _log.Info($"=== Smart Layout Switcher {version.Split('+', 2)[0]} starting ===");
+        _log.Diagnostic($"Startup: os={Environment.OSVersion.VersionString}, process64={Environment.Is64BitProcess}, " +
+                        $"hotkey={_settings.Hotkey}, enabled={_settings.Enabled}, debug={_settings.DebugLogEnabled}.");
 
         var installedVersion = typeof(App).Assembly.GetName().Version ?? new Version(0, 0, 0);
         _updates = new UpdateCoordinator(_settings, installedVersion);
