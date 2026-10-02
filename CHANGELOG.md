@@ -2,6 +2,18 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.0] - 2026-10-02
+
+### First public release
+- Mac-style keyboard layout switching for Windows with a rounded, blurred layout picker.
+- A saved two-layout working pair, per-window layout memory and configurable Win + Space or Left Alt + Left Shift shortcuts.
+- Selected-text correction with Win + Left Alt + Space, followed by switching to the corrected layout.
+- Update notifications linking to the official release page and a self-contained Windows x64 installer.
+- Includes the foreground-layout synchronization fix and bounded local diagnostic logging from development version 1.0.28.
+- Reviewed public documentation and removed unused icon variants and personal assistant configuration from the tracked project.
+
+Public versioning starts at 1.0.0. Users of numerically higher development builds must install this release manually. The entries below document the development history, not the public version sequence.
+
 ## [1.0.28] - 2026-10-02
 
 ### Hotkey reliability

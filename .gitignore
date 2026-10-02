@@ -19,3 +19,15 @@ refs/
 # Logs and local settings
 *.log
 settings.json
+
+# Personal coding-assistant configuration (kept locally)
+Modelfile
+opencode.json
+.continue/
+.opencode/
+.claude/
+CLAUDE.local.md
+*.log.previous
+.env
+.env.*
+!.env.example
