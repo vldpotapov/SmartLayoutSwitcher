@@ -2,6 +2,14 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.1] - 2026-10-03
+
+### Diagnostics
+- Disabled file logging by default after reliability testing. Logging can still be explicitly enabled with `DebugLogEnabled` for troubleshooting.
+- Disabled the diagnostic heartbeat and extra hotkey diagnostic queries when logging is off; no log writer thread or new log files are created.
+- Preserved existing log files and keyboard switching behavior.
+- Added regression tests for disabled logging, existing log preservation and opt-in logging.
+
 ## [1.0.0] - 2026-10-02
 
 ### First public release

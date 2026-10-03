@@ -34,7 +34,7 @@ public sealed class LayoutSwitcherService : IDisposable
     private readonly SelectedTextConversionService _selectedTextConverter = new();
     private readonly object _gate = new();
     private readonly System.Threading.Timer _pollTimer;
-    private readonly DispatcherTimer _diagnosticTimer;
+    private readonly DispatcherTimer? _diagnosticTimer;
 
     private IReadOnlyList<LayoutInfo> _installed = Array.Empty<LayoutInfo>();
 
@@ -127,13 +127,16 @@ public sealed class LayoutSwitcherService : IDisposable
 
         _pollTimer = new System.Threading.Timer(_ => OnPoll(), null, 300, 300);
 
-        _diagnosticTimer = new DispatcherTimer(DispatcherPriority.Background)
+        if (_log.IsEnabled)
         {
-            Interval = TimeSpan.FromMinutes(1),
-        };
-        _diagnosticTimer.Tick += OnDiagnosticHeartbeat;
-        _diagnosticTimer.Start();
-        WriteDiagnosticSnapshot("service-ready");
+            _diagnosticTimer = new DispatcherTimer(DispatcherPriority.Background)
+            {
+                Interval = TimeSpan.FromMinutes(1),
+            };
+            _diagnosticTimer.Tick += OnDiagnosticHeartbeat;
+            _diagnosticTimer.Start();
+            WriteDiagnosticSnapshot("service-ready");
+        }
     }
 
     public void PublishStatus() => RaiseStatus();
@@ -154,7 +157,7 @@ public sealed class LayoutSwitcherService : IDisposable
         var isSecondary = usesWinSpace
             ? args.VkCode == NativeMethods.VK_SPACE
             : args.VkCode == NativeMethods.VK_LSHIFT;
-        var shouldDiagnose = ShouldDiagnoseHotkeyEvent(usesWinSpace, isPrimary, isSecondary);
+        var shouldDiagnose = _log.IsEnabled && ShouldDiagnoseHotkeyEvent(usesWinSpace, isPrimary, isSecondary);
         var diagnosticId = shouldDiagnose ? ++_diagnosticEventSequence : 0;
         var diagnosticStarted = shouldDiagnose ? Stopwatch.GetTimestamp() : 0;
         if (shouldDiagnose)
@@ -1013,7 +1016,7 @@ public sealed class LayoutSwitcherService : IDisposable
             SystemEvents.SessionSwitch -= OnSessionSwitch;
             SystemEvents.PowerModeChanged -= OnPowerModeChanged;
             StopLongPressTimer();
-            _diagnosticTimer.Stop();
+            _diagnosticTimer?.Stop();
             _pollTimer?.Dispose();
             _hook.Dispose();
             _foreground.Dispose();

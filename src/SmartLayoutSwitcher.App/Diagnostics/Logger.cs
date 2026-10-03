@@ -5,8 +5,8 @@ namespace SmartLayoutSwitcher.App.Diagnostics;
 
 /// <summary>
 /// Minimal bounded file logger. Never logs typed characters or user text;
-/// only layouts, window changes and hotkey state. Diagnostic entries are always
-/// available; the user setting controls only the extra verbose debug entries.
+/// only layouts, window changes and hotkey state. All file logging is opt-in
+/// through the debug setting; disabled logging creates no files or worker thread.
 /// </summary>
 public sealed class Logger : IDisposable
 {
@@ -23,6 +23,9 @@ public sealed class Logger : IDisposable
     public Logger(bool debugEnabled, string path)
     {
         _debugEnabled = debugEnabled;
+
+        if (!debugEnabled)
+            return;
 
         try
         {

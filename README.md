@@ -50,7 +50,7 @@ The tray menu shows the current layout, the active pair, **Settings**, and **Qui
 
 Text correction remaps characters between keyboard layouts; it does not translate between languages. It uses the application's standard copy/paste shortcuts, so the selected text must support copying and pasting. Clipboard contents are restored when possible, provided another app has not changed them during the operation.
 
-Diagnostic logging is currently enabled while reliability is being verified. Logs contain shortcut events, layout identifiers and foreground process names/window handles, but never typed text or clipboard contents. They stay on your computer in `%APPDATA%\SmartLayoutSwitcher\smart-layout-switcher.log`, with one rotated `.previous` file, about 2 MB each. The app does not upload them.
+Diagnostic logging is disabled by default. For troubleshooting, you can enable it by setting `DebugLogEnabled` to `true` in `%APPDATA%\SmartLayoutSwitcher\settings.json` while the app is closed. Logs contain shortcut events, layout identifiers and foreground process names/window handles, but never typed text or clipboard contents. They stay on your computer in `%APPDATA%\SmartLayoutSwitcher\smart-layout-switcher.log`, with one rotated `.previous` file, about 2 MB each. The app does not upload them. Existing log files are not deleted when logging is disabled.
 
 **For users of development builds:** `1.0.0` starts the public release series. Earlier builds numbered `1.0.1`–`1.0.28` have numerically higher versions and will not detect `1.0.0` as an update. Download and run the public installer manually; existing settings are retained.
 

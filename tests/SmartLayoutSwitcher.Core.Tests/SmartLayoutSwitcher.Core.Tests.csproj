@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\SmartLayoutSwitcher.Core\SmartLayoutSwitcher.Core.csproj" />
+    <Compile Include="..\..\src\SmartLayoutSwitcher.App\Diagnostics\Logger.cs" Link="Diagnostics\Logger.cs" />
   </ItemGroup>
 
 </Project>
