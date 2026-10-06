@@ -52,7 +52,7 @@ Text correction remaps characters between keyboard layouts; it does not translat
 
 Diagnostic logging is disabled by default. For troubleshooting, you can enable it by setting `DebugLogEnabled` to `true` in `%APPDATA%\SmartLayoutSwitcher\settings.json` while the app is closed. Logs contain shortcut events, layout identifiers and foreground process names/window handles, but never typed text or clipboard contents. They stay on your computer in `%APPDATA%\SmartLayoutSwitcher\smart-layout-switcher.log`, with one rotated `.previous` file, about 2 MB each. The app does not upload them. Existing log files are not deleted when logging is disabled.
 
-**For users of development builds:** `1.0.0` starts the public release series. Earlier builds numbered `1.0.1`–`1.0.28` have numerically higher versions and will not detect `1.0.0` as an update. Download and run the public installer manually; existing settings are retained.
+**Version numbering:** `1.0.30` resumes the original version sequence after the temporary `1.0.0` / `1.0.1` numbering reset. It is newer than all previous releases, including `1.0.28`, so existing installations can detect it as an update. Run the latest installer over your existing installation; your settings are retained.
 
 ## Build from source
 

@@ -1,5 +1,5 @@
 #define MyAppName "Smart Layout Switcher"
-#define MyAppVersion "1.0.1"
+#define MyAppVersion "1.0.30"
 #define MyAppPublisher "Vladimir Potapov"
 #define MyAppURL "https://github.com/vldpotapov/SmartLayoutSwitcher"
 #define MyAppExeName "SmartLayoutSwitcher.App.exe"
@@ -62,6 +62,18 @@ Root: HKCU; Subkey: "Software\SmartLayoutSwitcher"; ValueType: string; ValueName
 var
   HotkeyPage: TInputOptionWizardPage;
 
+procedure ReserveCheckGlyphGutter(CheckList: TNewCheckListBox);
+var
+  ExtraGutter: Integer;
+begin
+  { The themed check/radio glyph can be wider than the legacy bitmap width
+    used by TNewCheckListBox. Offset reserves room INSIDE the control; moving
+    Left alone cannot fix clipping by the control's own client rectangle.
+    Keep the control within its parent: a custom page can start at Left=0. }
+  ExtraGutter := ScaleX(8);
+  CheckList.Offset := CheckList.Offset + ExtraGutter;
+end;
+
 procedure StopRunningApplication;
 var
   ResultCode: Integer;
@@ -94,6 +106,9 @@ begin
   { Keep the launch checkbox aligned with the finished-page body text. Using
     the label position also follows Inno Setup's DPI-scaled page geometry. }
   WizardForm.RunList.Left := WizardForm.FinishedLabel.Left;
+  ReserveCheckGlyphGutter(WizardForm.RunList);
+  ReserveCheckGlyphGutter(WizardForm.TasksList);
+  ReserveCheckGlyphGutter(HotkeyPage.CheckListBox);
 end;
 
 function GetSelectedHotkey(Param: String): String;

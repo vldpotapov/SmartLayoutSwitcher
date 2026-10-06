@@ -2,6 +2,15 @@
 
 All notable changes to Smart Layout Switcher are documented in this file.
 
+## [1.0.30] - 2026-10-06
+
+### Version numbering
+- Resumed the original monotonically increasing version sequence after the temporary 1.0.0 / 1.0.1 reset. This release is newer than 1.0.28 and all other previous releases.
+
+### Installer
+- Reserved a DPI-scaled internal gutter for themed checkbox and radio-button glyphs, preventing their left edges from being clipped on the shortcut, additional-tasks and completion pages.
+- Retained the opt-in diagnostic logging introduced in 1.0.1; keyboard switching behavior is unchanged.
+
 ## [1.0.1] - 2026-10-03
 
 ### Diagnostics
@@ -20,7 +29,7 @@ All notable changes to Smart Layout Switcher are documented in this file.
 - Includes the foreground-layout synchronization fix and bounded local diagnostic logging from development version 1.0.28.
 - Reviewed public documentation and removed unused icon variants and personal assistant configuration from the tracked project.
 
-Public versioning starts at 1.0.0. Users of numerically higher development builds must install this release manually. The entries below document the development history, not the public version sequence.
+Historical note: 1.0.0 temporarily reset the version sequence, preventing older numerically higher builds from detecting it. Version 1.0.30 restores increasing numbering. The entries below preserve the earlier development history.
 
 ## [1.0.28] - 2026-10-02
 
